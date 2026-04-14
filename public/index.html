@@ -113,6 +113,7 @@
       padding: 10px;
       text-align: left;
       font-size: 14px;
+      vertical-align: top;
     }
 
     th {
@@ -122,6 +123,29 @@
     .empty {
       color: #64748b;
       font-style: italic;
+      text-align: center;
+    }
+
+    .mensagem {
+      margin-bottom: 16px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      display: none;
+      font-size: 14px;
+    }
+
+    .mensagem.sucesso {
+      display: block;
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #86efac;
+    }
+
+    .mensagem.erro {
+      display: block;
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fca5a5;
     }
 
     @media (max-width: 900px) {
@@ -140,6 +164,8 @@
   <main>
     <section class="card">
       <h2>Novo processo</h2>
+
+      <div id="mensagem" class="mensagem"></div>
 
       <form id="processoForm">
         <div class="grid">
@@ -169,7 +195,7 @@
 
           <div class="field">
             <label for="protocolo">Protocolo</label>
-            <input type="text" id="protocolo" name="protocolo">
+            <input type="text" id="protocolo" name="protocolo" required>
           </div>
 
           <div class="field full">
@@ -194,7 +220,7 @@
 
           <div class="field full">
             <label for="assunto">Assunto</label>
-            <input type="text" id="assunto" name="assunto">
+            <input type="text" id="assunto" name="assunto" required>
           </div>
 
           <div class="field full">
@@ -231,5 +257,101 @@
       </table>
     </section>
   </main>
+
+  <script>
+    const form = document.getElementById('processoForm');
+    const tabelaProcessos = document.getElementById('tabelaProcessos');
+    const mensagem = document.getElementById('mensagem');
+
+    function exibirMensagem(texto, tipo) {
+      mensagem.textContent = texto;
+      mensagem.className = `mensagem ${tipo}`;
+    }
+
+    function limparMensagem() {
+      mensagem.textContent = '';
+      mensagem.className = 'mensagem';
+    }
+
+    function montarLinha(processo) {
+      return `
+        <tr>
+          <td>${processo.status || ''}</td>
+          <td>
+            ${processo.link
+              ? `<a href="${processo.link}" target="_blank">${processo.protocolo || ''}</a>`
+              : (processo.protocolo || '')}
+          </td>
+          <td>${processo.assunto || ''}</td>
+          <td>${processo.origem || ''}</td>
+          <td>${processo.destino || ''}</td>
+          <td>${processo.prazoDiasUteis || ''}</td>
+        </tr>
+      `;
+    }
+
+    async function carregarProcessos() {
+      try {
+        const resposta = await fetch('/api/processos');
+        const processos = await resposta.json();
+
+        if (!processos.length) {
+          tabelaProcessos.innerHTML = `
+            <tr>
+              <td colspan="6" class="empty">Nenhum processo cadastrado até o momento.</td>
+            </tr>
+          `;
+          return;
+        }
+
+        tabelaProcessos.innerHTML = processos.map(montarLinha).join('');
+      } catch (erro) {
+        exibirMensagem('Erro ao carregar os processos.', 'erro');
+      }
+    }
+
+    form.addEventListener('submit', async function (event) {
+      event.preventDefault();
+      limparMensagem();
+
+      const dados = {
+        status: document.getElementById('status').value,
+        precisaResposta: document.getElementById('precisaResposta').value,
+        dataRecebimento: document.getElementById('dataRecebimento').value,
+        protocolo: document.getElementById('protocolo').value,
+        link: document.getElementById('link').value,
+        origem: document.getElementById('origem').value,
+        destino: document.getElementById('destino').value,
+        prazoDiasUteis: document.getElementById('prazoDiasUteis').value,
+        assunto: document.getElementById('assunto').value,
+        observacao: document.getElementById('observacao').value
+      };
+
+      try {
+        const resposta = await fetch('/api/processos', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(dados)
+        });
+
+        const resultado = await resposta.json();
+
+        if (!resposta.ok) {
+          exibirMensagem(resultado.erro || 'Erro ao salvar o processo.', 'erro');
+          return;
+        }
+
+        exibirMensagem('Processo cadastrado com sucesso.', 'sucesso');
+        form.reset();
+        carregarProcessos();
+      } catch (erro) {
+        exibirMensagem('Erro de comunicação com o servidor.', 'erro');
+      }
+    });
+
+    carregarProcessos();
+  </script>
 </body>
 </html>
