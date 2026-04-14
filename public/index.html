@@ -4,9 +4,232 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Processos PRODI</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      color: #1f2937;
+    }
+
+    header {
+      background: #0f172a;
+      color: #fff;
+      padding: 20px 32px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    header p {
+      margin: 6px 0 0;
+      font-size: 14px;
+      color: #cbd5e1;
+    }
+
+    main {
+      max-width: 1200px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      margin-top: 0;
+      font-size: 20px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .field.full {
+      grid-column: 1 / -1;
+    }
+
+    label {
+      font-size: 14px;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
+
+    input, select, textarea, button {
+      padding: 10px 12px;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 14px;
+    }
+
+    textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+
+    .actions {
+      margin-top: 16px;
+      display: flex;
+      gap: 12px;
+    }
+
+    button {
+      background: #0f62fe;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: #475569;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+    }
+
+    th, td {
+      border: 1px solid #e2e8f0;
+      padding: 10px;
+      text-align: left;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f8fafc;
+    }
+
+    .empty {
+      color: #64748b;
+      font-style: italic;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 <body>
-  <h1>Processos PRODI</h1>
-  <p>Sistema web em construção.</p>
+  <header>
+    <h1>Processos PRODI</h1>
+    <p>Sistema de registro, acompanhamento e controle de processos</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Novo processo</h2>
+
+      <form id="processoForm">
+        <div class="grid">
+          <div class="field">
+            <label for="status">Status</label>
+            <select id="status" name="status">
+              <option>Recebido</option>
+              <option>Encaminhados Externamente</option>
+              <option>Encaminhado Internamente</option>
+              <option>Finalizado</option>
+              <option>Em análise</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="precisaResposta">Precisa de Resposta?</label>
+            <select id="precisaResposta" name="precisaResposta">
+              <option>Sim</option>
+              <option>Não</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="dataRecebimento">Data de recebimento</label>
+            <input type="date" id="dataRecebimento" name="dataRecebimento">
+          </div>
+
+          <div class="field">
+            <label for="protocolo">Protocolo</label>
+            <input type="text" id="protocolo" name="protocolo">
+          </div>
+
+          <div class="field full">
+            <label for="link">Link do processo no SUAP</label>
+            <input type="url" id="link" name="link">
+          </div>
+
+          <div class="field">
+            <label for="origem">Origem</label>
+            <input type="text" id="origem" name="origem">
+          </div>
+
+          <div class="field">
+            <label for="destino">Destino</label>
+            <input type="text" id="destino" name="destino">
+          </div>
+
+          <div class="field">
+            <label for="prazoDiasUteis">Prazo em dias úteis</label>
+            <input type="number" id="prazoDiasUteis" name="prazoDiasUteis" min="0">
+          </div>
+
+          <div class="field full">
+            <label for="assunto">Assunto</label>
+            <input type="text" id="assunto" name="assunto">
+          </div>
+
+          <div class="field full">
+            <label for="observacao">Observação</label>
+            <textarea id="observacao" name="observacao"></textarea>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="submit">Salvar processo</button>
+          <button type="reset" class="secondary">Limpar</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Processos cadastrados</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Protocolo</th>
+            <th>Assunto</th>
+            <th>Origem</th>
+            <th>Destino</th>
+            <th>Prazo</th>
+          </tr>
+        </thead>
+        <tbody id="tabelaProcessos">
+          <tr>
+            <td colspan="6" class="empty">Nenhum processo cadastrado até o momento.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+  </main>
 </body>
 </html>
