@@ -55,6 +55,9 @@ async function initDatabase() {
       )
     `);
 
+    await client.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS atualizado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()`);
+    await client.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS ultimo_login_em TIMESTAMPTZ`);
+
     await client.query(`
       CREATE TABLE IF NOT EXISTS processos (
         id SERIAL PRIMARY KEY,
@@ -84,6 +87,31 @@ async function initDatabase() {
         faixa_2 TEXT
       )
     `);
+
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS status TEXT NOT NULL DEFAULT 'Recebido'`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS precisa_resposta TEXT NOT NULL DEFAULT 'Nao'`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS data_recebimento DATE`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS protocolo TEXT`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS link TEXT`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS origem TEXT`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS destino TEXT`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS prazo_dias_uteis INTEGER`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS assunto TEXT`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS observacao TEXT`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS criado_por TEXT`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS atualizado_por TEXT`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS atualizado_em TIMESTAMPTZ`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS dias_parado INTEGER`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS data_encaminhamento DATE`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS prazo_em_dias_uteis INTEGER`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS verificar_com_setor DATE`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS email_setor TEXT`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS dias_restantes INTEGER`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS vencimento_proximo TEXT`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS faixa TEXT`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS iteracao INTEGER`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS faixa_2 TEXT`);
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS sessoes (
