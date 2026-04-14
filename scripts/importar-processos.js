@@ -1,6 +1,8 @@
 const pool = require('../src/db');
+const { initDatabase } = require('../src/bootstrap-db');
 
 const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnnvro-sOwrEbCrAhVY6zy5q__X9nr5CSXvmTk9Hja-nJ4oFFI9EBUf383aWBCwEe72gP0k6UWPxTR/pub?gid=0&single=true&output=csv';
+const FORCE_IMPORT = process.env.FORCE_IMPORT === 'true';
 
 function parseCSVLine(line) {
   const result = [];
@@ -30,14 +32,18 @@ function parseCSVLine(line) {
 
 function parseCSV(text) {
   const lines = text.replace(/\r/g, '').split('\n').filter(Boolean);
-  const headers = parseCSVLine(lines[0]).map(h => h.trim());
+  if (!lines.length) return [];
 
-  return lines.slice(1).map(line => {
+  const headers = parseCSVLine(lines[0]).map((h) => h.trim());
+
+  return lines.slice(1).map((line) => {
     const values = parseCSVLine(line);
     const row = {};
+
     headers.forEach((header, index) => {
       row[header] = (values[index] || '').trim();
     });
+
     return row;
   });
 }
@@ -65,36 +71,55 @@ async function importar() {
   const client = await pool.connect();
 
   try {
+    await initDatabase();
+
+    const quantidadeAtual = await client.query('SELECT COUNT(*)::int AS total FROM processos');
+    const totalAtual = quantidadeAtual.rows[0].total;
+
+    if (totalAtual > 0 && !FORCE_IMPORT) {
+      throw new Error(
+        `Importacao bloqueada: tabela processos ja possui ${totalAtual} registro(s). Use FORCE_IMPORT=true para forcar.`
+      );
+    }
+
     const response = await fetch(CSV_URL);
     if (!response.ok) throw new Error(`Falha ao baixar CSV: ${response.status}`);
 
     const csvText = await response.text();
     const rows = parseCSV(csvText);
 
-    console.log(`Linhas encontradas: ${rows.length}`);
+    console.log(`Linhas encontradas no CSV: ${rows.length}`);
 
     await client.query('BEGIN');
 
+    let importados = 0;
+    let ignorados = 0;
+
     for (const row of rows) {
-      const status = row['Status'] || null;
-      const precisaResposta = row['Precisa de Resposta?'] || null;
+      const status = row['Status'] || 'Recebido';
+      const precisaResposta = row['Precisa de Resposta?'] || 'Nao';
       const dataRecebimento = parseDateBR(row['Data recebimento']);
       const protocolo = row['Protocolo'] || null;
       const link = row['Link'] || null;
       const origem = row['Origem'] || null;
       const assunto = row['Assunto'] || null;
-      const observacao = row['Observa√ß√£o'] || row['Observacao'] || null;
+      const observacao = row['ObservaÁ„o'] || row['Observacao'] || null;
       const destino = row['Destino'] || null;
       const diasParado = parseInteger(row['Dias parado']);
       const dataEncaminhamento = parseDateBR(row['Data do encaminhamento']);
-      const prazoEmDiasUteis = parseInteger(row['Prazo em dias √∫teis']);
+      const prazoEmDiasUteis = parseInteger(row['Prazo em dias ˙teis'] || row['Prazo em dias uteis']);
       const verificarComSetor = parseDateBR(row['Verificar com setor']);
       const emailSetor = row['e-mail do setor'] || row['Email do setor'] || null;
       const diasRestantes = parseInteger(row['Dias restantes']);
-      const vencimentoProximo = row['Vencimento Pr√≥ximo'] || row['Vencimento Proximo'] || null;
+      const vencimentoProximo = row['Vencimento PrÛximo'] || row['Vencimento Proximo'] || null;
       const faixa = row['Faixa'] || null;
-      const iteracao = parseInteger(row['Itera√ß√£o'] || row['Iteracao']);
+      const iteracao = parseInteger(row['IteraÁ„o'] || row['Iteracao']);
       const faixa2 = row['Faixa 2'] || null;
+
+      if (!protocolo || !assunto) {
+        ignorados += 1;
+        continue;
+      }
 
       await client.query(
         `
@@ -108,6 +133,8 @@ async function importar() {
           assunto,
           observacao,
           destino,
+          prazo_dias_uteis,
+          criado_por,
           dias_parado,
           data_encaminhamento,
           prazo_em_dias_uteis,
@@ -120,7 +147,7 @@ async function importar() {
           faixa_2
         ) VALUES (
           $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,
-          $11,$12,$13,$14,$15,$16,$17,$18,$19
+          $11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21
         )
         `,
         [
@@ -133,6 +160,8 @@ async function importar() {
           assunto,
           observacao,
           destino,
+          prazoEmDiasUteis,
+          'importacao_csv',
           diasParado,
           dataEncaminhamento,
           prazoEmDiasUteis,
@@ -145,13 +174,20 @@ async function importar() {
           faixa2
         ]
       );
+
+      importados += 1;
     }
 
     await client.query('COMMIT');
-    console.log('Importa√ß√£o conclu√≠da com sucesso.');
+    console.log(`Importacao concluida com sucesso. Importados: ${importados}. Ignorados: ${ignorados}.`);
   } catch (error) {
-    await client.query('ROLLBACK');
-    console.error('Erro na importa√ß√£o:', error);
+    try {
+      await client.query('ROLLBACK');
+    } catch (rollbackError) {
+      console.error('Falha no rollback:', rollbackError.message);
+    }
+
+    console.error('Erro na importacao:', error.message);
     process.exitCode = 1;
   } finally {
     client.release();
