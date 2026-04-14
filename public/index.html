@@ -3,397 +3,336 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Processos PRODI</title>
+  <title>Painel Gerencial PRODI</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    :root { --if-verde:#32a041;--if-vermelho:#c8191e;--if-preto:#000;--bg:#f4f6f8;--card:#fff;--border:#d9e2dc;--text:#1f2937;--muted:#6b7280;--header:#0f172a;--header-soft:#1e293b;--success-bg:#ecfdf3;--success-border:#86efac;--success-text:#166534;--error-bg:#fef2f2;--error-border:#fca5a5;--error-text:#991b1b;--info-bg:#eff6ff;--info-border:#93c5fd;--info-text:#1e40af;--shadow:0 8px 24px rgba(15,23,42,.08);--radius:14px; }
+    :root { --if-verde:#32a041;--if-vermelho:#c8191e;--bg:#f4f6f8;--card:#fff;--border:#d9e2dc;--text:#1f2937;--muted:#6b7280;--header:#0f172a;--header-soft:#1e293b;--ok:#166534;--ok-bg:#ecfdf3;--ok-bd:#86efac;--er:#991b1b;--er-bg:#fef2f2;--er-bd:#fca5a5;--in:#1e40af;--in-bg:#eff6ff;--in-bd:#93c5fd;--shadow:0 8px 24px rgba(15,23,42,.08);--radius:14px; }
     *{box-sizing:border-box} html,body{margin:0;padding:0;font-family:'Open Sans',Arial,sans-serif;background:var(--bg);color:var(--text)}
     .topbar{height:6px;background:linear-gradient(90deg,var(--if-verde) 0 82%,var(--if-vermelho) 82% 100%)}
     header{background:linear-gradient(135deg,var(--header) 0%,var(--header-soft) 100%);color:#fff;padding:24px 20px;border-bottom:4px solid var(--if-verde)}
-    .header-content{max-width:1240px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
-    .brand-text h1{margin:0;font-size:2rem;line-height:1.1;font-weight:700}.brand-text p{margin:6px 0 0;font-size:.98rem;color:#d1d5db}
-    .header-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-    .badge{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#fff;padding:10px 14px;border-radius:999px;font-size:.86rem;font-weight:600;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;min-height:40px}
+    .header-content{max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+    .brand h1{margin:0;font-size:2rem}.brand p{margin:6px 0 0;color:#d1d5db}
+    .header-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .badge{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#fff;padding:10px 14px;border-radius:999px;font-size:.86rem;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;min-height:40px}
     .badge.action{background:rgba(50,160,65,.24)} .badge.secondary{background:rgba(255,255,255,.14);cursor:pointer;border:none}
-    main{max-width:1240px;margin:24px auto;padding:0 16px 32px}
-    .dashboard{display:grid;grid-template-columns:1.4fr 1fr;gap:20px;margin-bottom:20px}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
-    .card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:18px;flex-wrap:wrap}
-    .card h2{margin:0;font-size:1.15rem;color:var(--if-preto)}.card-subtitle{margin:4px 0 0;color:var(--muted);font-size:.92rem;line-height:1.45}
-    .status-pill{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:#f0fdf4;color:var(--if-verde);border:1px solid #bbf7d0;font-size:.85rem;font-weight:700}
-    .status-pill::before{content:"";width:8px;height:8px;background:var(--if-verde);border-radius:50%}
-    .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.stat{border:1px solid var(--border);border-radius:12px;padding:16px;background:#fbfcfb}
-    .stat-label{font-size:.82rem;color:var(--muted);margin-bottom:8px}.stat-value{font-size:1.5rem;font-weight:700;color:var(--if-preto)}
-    .form-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}.field{display:flex;flex-direction:column;gap:6px}
-    .field.col-3{grid-column:span 3}.field.col-4{grid-column:span 4}.field.col-12{grid-column:span 12}
-    label{font-size:.9rem;font-weight:700;color:#334155}
-    input,select,textarea{width:100%;border:1px solid #cbd5e1;background:#fff;border-radius:10px;padding:12px;font-size:16px;color:var(--text)}
+    main{max-width:1280px;margin:24px auto;padding:0 16px 32px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:18px}
+    .card h2{margin:0;font-size:1.1rem}.sub{margin:4px 0 0;color:var(--muted);font-size:.9rem}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:10px}.col-2{grid-column:span 2}.col-3{grid-column:span 3}.col-4{grid-column:span 4}.col-6{grid-column:span 6}.col-12{grid-column:span 12}
+    label{font-size:.84rem;font-weight:700;color:#334155}
+    input,select,textarea{width:100%;border:1px solid #cbd5e1;background:#fff;border-radius:10px;padding:10px;font-size:14px;color:var(--text)}
+    textarea{resize:vertical;min-height:86px}
     input:focus,select:focus,textarea:focus{outline:none;border-color:var(--if-verde);box-shadow:0 0 0 3px rgba(50,160,65,.12)}
-    textarea{resize:vertical;min-height:96px}
-    .actions{display:flex;gap:12px;margin-top:18px;flex-wrap:wrap} button{border:none;border-radius:10px;padding:12px 18px;font-size:.95rem;font-weight:700;cursor:pointer;min-height:44px}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    button{border:none;border-radius:10px;padding:10px 14px;font-size:.9rem;font-weight:700;cursor:pointer;min-height:40px}
     .btn-primary{background:var(--if-verde);color:#fff}.btn-secondary{background:#e5e7eb;color:#111827}.btn-warning{background:#1d4ed8;color:#fff}
-    .toolbar{display:grid;grid-template-columns:1.5fr 1fr;gap:12px;margin-bottom:16px}
-    .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;background:#fff}
-    table{width:100%;border-collapse:collapse;min-width:920px} thead th{background:#f8fafc;color:#334155;font-size:.88rem;font-weight:700;text-align:left;padding:14px 12px;border-bottom:1px solid var(--border);white-space:nowrap}
-    tbody td{padding:14px 12px;border-bottom:1px solid #edf2f7;font-size:.93rem;vertical-align:top}
-    .table-link{color:var(--if-verde);font-weight:700;text-decoration:none}
-    .tag{display:inline-block;padding:6px 10px;border-radius:999px;font-size:.8rem;font-weight:700;white-space:nowrap}
+    .msg{margin-bottom:12px;padding:10px 12px;border-radius:10px;display:none;font-size:.9rem;font-weight:600}
+    .msg.sucesso{display:block;background:var(--ok-bg);color:var(--ok);border:1px solid var(--ok-bd)}
+    .msg.erro{display:block;background:var(--er-bg);color:var(--er);border:1px solid var(--er-bd)}
+    .msg.info{display:block;background:var(--in-bg);color:var(--in);border:1px solid var(--in-bd)}
+    .kpis{display:grid;grid-template-columns:repeat(8,1fr);gap:10px}
+    .kpi{border:1px solid var(--border);border-radius:10px;padding:10px;background:#fbfcfb}.kpi .label{font-size:.76rem;color:var(--muted);min-height:28px}.kpi .value{font-size:1.35rem;font-weight:700;margin-top:4px}
+    .row2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}
+    .bars{display:flex;flex-direction:column;gap:8px}
+    .bar{display:grid;grid-template-columns:1.4fr 4fr auto;gap:8px;align-items:center;font-size:.84rem}
+    .track{height:10px;border-radius:999px;background:#e2e8f0;overflow:hidden}.fill{height:100%;border-radius:999px;background:linear-gradient(90deg,#2563eb,#1d4ed8)}
+    .alerts{display:flex;flex-direction:column;gap:8px}.alert{border:1px solid var(--border);border-left:4px solid #f59e0b;border-radius:10px;padding:10px;font-size:.85rem}.alert.alto{border-left-color:#dc2626}
+    .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;background:#fff}
+    table{width:100%;border-collapse:collapse;min-width:820px} th,td{padding:10px;border-bottom:1px solid #edf2f7;font-size:.86rem;text-align:left} thead th{background:#f8fafc;color:#334155;font-weight:700;white-space:nowrap}
+    .empty{text-align:center;color:var(--muted);font-style:italic;padding:18px !important}
+    .tag{display:inline-block;padding:5px 9px;border-radius:999px;font-size:.77rem;font-weight:700}
     .tag.recebido{background:#ecfdf3;color:#166534}.tag.analise{background:#eff6ff;color:#1d4ed8}.tag.encaminhado{background:#fff7ed;color:#c2410c}.tag.finalizado{background:#f3f4f6;color:#374151}
-    .table-actions{display:flex;gap:8px;flex-wrap:wrap}.table-actions button{padding:8px 10px;min-height:auto;font-size:.85rem}
-    .empty{text-align:center;color:var(--muted);font-style:italic;padding:24px !important}
-    .mensagem{margin-bottom:16px;padding:12px 14px;border-radius:10px;display:none;font-size:.92rem;font-weight:600}
-    .mensagem.sucesso{display:block;background:var(--success-bg);color:var(--success-text);border:1px solid var(--success-border)}
-    .mensagem.erro{display:block;background:var(--error-bg);color:var(--error-text);border:1px solid var(--error-border)}
-    .mensagem.info{display:block;background:var(--info-bg);color:var(--info-text);border:1px solid var(--info-border)}
-    .footer-note{margin-top:10px;color:var(--muted);font-size:.84rem;line-height:1.5}.hidden{display:none !important}
-    @media (max-width:1024px){.dashboard{grid-template-columns:1fr}.field.col-3,.field.col-4{grid-column:span 6}}
-    @media (max-width:700px){.brand-text h1{font-size:1.55rem}.badge{width:100%;text-align:center}.header-actions{width:100%}main{padding:0 12px 24px}.card{padding:16px}.stats{grid-template-columns:1fr}.field.col-3,.field.col-4,.field.col-12{grid-column:span 12}.actions{flex-direction:column}button{width:100%}.toolbar{grid-template-columns:1fr}}
+    .hidden{display:none !important}
+    @media (max-width:1240px){.kpis{grid-template-columns:repeat(4,1fr)}}
+    @media (max-width:980px){.row2{grid-template-columns:1fr}.col-2,.col-3,.col-4,.col-6{grid-column:span 6}}
+    @media (max-width:720px){.brand h1{font-size:1.45rem}.kpis{grid-template-columns:repeat(2,1fr)}.col-2,.col-3,.col-4,.col-6,.col-12{grid-column:span 12}.actions{flex-direction:column}button{width:100%}.badge{width:100%}.header-actions{width:100%}}
   </style>
 </head>
 <body>
   <div class="topbar"></div>
   <header>
     <div class="header-content">
-      <div class="brand-text">
-        <h1>Processos PRODI</h1>
-        <p>Pro-Reitoria de Desenvolvimento Institucional - IFMS</p>
+      <div class="brand">
+        <h1>Painel Gerencial PRODI</h1>
+        <p>Processos, setores, fluxo e responsabilidade operacional</p>
       </div>
       <div class="header-actions">
         <span class="badge" id="usuarioInfo">Nao autenticado</span>
         <a class="badge action" id="btnLoginGoogle" href="/auth/google">Entrar com Google</a>
-        <a class="badge action hidden" id="btnUsuarios" href="/usuarios">Cadastrar usuarios</a>
-        <a class="badge action hidden" id="btnSetores" href="/setores">Cadastro de setores</a>
+        <a class="badge action hidden" id="btnUsuarios" href="/usuarios">Usuarios</a>
+        <a class="badge action hidden" id="btnSetores" href="/setores">Setores</a>
         <button class="badge secondary hidden" id="btnLogout" type="button">Sair</button>
       </div>
     </div>
   </header>
 
   <main>
-    <section class="dashboard">
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <h2 id="tituloFormulario">Cadastro de processo</h2>
-            <p class="card-subtitle">Registre, acompanhe e atualize processos administrativos.</p>
-          </div>
-          <span class="status-pill">Sistema ativo</span>
-        </div>
+    <section class="card">
+      <h2>Filtros globais</h2>
+      <p class="sub">Aplicam-se aos blocos gerenciais abaixo.</p>
+      <div class="grid" style="margin-top:10px;">
+        <div class="col-3"><label for="dashQ">Busca</label><input id="dashQ" placeholder="Protocolo, assunto, origem, destino"></div>
+        <div class="col-2"><label for="dashStatus">Status</label><select id="dashStatus"><option value="">Todos</option><option value="Recebido">Recebido</option><option value="Encaminhados Externamente">Encaminhados Externamente</option><option value="Encaminhado Internamente">Encaminhado Internamente</option><option value="Finalizado">Finalizado</option><option value="Em analise">Em analise</option></select></div>
+        <div class="col-2"><label for="dashOrigem">Origem</label><select id="dashOrigem"><option value="">Todos</option></select></div>
+        <div class="col-2"><label for="dashDestino">Destino</label><select id="dashDestino"><option value="">Todos</option></select></div>
+        <div class="col-2"><label for="dashPerfil">Perfil</label><select id="dashPerfil"><option value="">Todos</option><option value="ADMIN_MASTER">ADMIN_MASTER</option><option value="GESTOR_PRODI">GESTOR_PRODI</option><option value="ANALISTA_PROCESSOS">ANALISTA_PROCESSOS</option><option value="APOIO_ADMINISTRATIVO">APOIO_ADMINISTRATIVO</option><option value="SEM_PERFIL">SEM_PERFIL</option></select></div>
+        <div class="col-1"><label for="dashSetorAtivo">Setor</label><select id="dashSetorAtivo"><option value="">Todos</option><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select></div>
+        <div class="col-2"><label for="dashDataInicio">Data inicio</label><input id="dashDataInicio" type="date"></div>
+        <div class="col-2"><label for="dashDataFim">Data fim</label><input id="dashDataFim" type="date"></div>
+      </div>
+      <div class="actions"><button class="btn-primary" id="btnAplicarFiltros" type="button">Aplicar</button><button class="btn-secondary" id="btnLimparFiltros" type="button">Limpar</button></div>
+    </section>
 
-        <div id="mensagem" class="mensagem"></div>
-
-        <form id="processoForm">
-          <input type="hidden" id="processoId" />
-
-          <div class="form-grid">
-            <div class="field col-3">
-              <label for="status">Status</label>
-              <select id="status" name="status">
-                <option>Recebido</option>
-                <option>Encaminhados Externamente</option>
-                <option>Encaminhado Internamente</option>
-                <option>Finalizado</option>
-                <option>Em analise</option>
-              </select>
-            </div>
-
-            <div class="field col-3">
-              <label for="precisaResposta">Precisa de resposta?</label>
-              <select id="precisaResposta" name="precisaResposta">
-                <option>Sim</option>
-                <option>Nao</option>
-              </select>
-            </div>
-
-            <div class="field col-3">
-              <label for="dataRecebimento">Data de recebimento</label>
-              <input type="date" id="dataRecebimento" name="dataRecebimento">
-            </div>
-
-            <div class="field col-3">
-              <label for="prazoDiasUteis">Prazo em dias uteis</label>
-              <input type="number" id="prazoDiasUteis" name="prazoDiasUteis" min="0">
-            </div>
-
-            <div class="field col-4">
-              <label for="protocolo">Protocolo</label>
-              <input type="text" id="protocolo" name="protocolo" required>
-            </div>
-
-            <div class="field col-4">
-              <label for="origem">Origem</label>
-              <select id="origem" name="origem"></select>
-            </div>
-
-            <div class="field col-4">
-              <label for="destino">Destino</label>
-              <select id="destino" name="destino"></select>
-            </div>
-
-            <div class="field col-12">
-              <label for="link">Link do processo no SUAP</label>
-              <input type="url" id="link" name="link" placeholder="https://...">
-            </div>
-
-            <div class="field col-12">
-              <label for="assunto">Assunto</label>
-              <input type="text" id="assunto" name="assunto" required>
-            </div>
-
-            <div class="field col-12">
-              <label for="observacao">Observacao</label>
-              <textarea id="observacao" name="observacao" placeholder="Informacoes complementares, encaminhamentos ou observacoes internas."></textarea>
-            </div>
-          </div>
-
-          <div class="actions">
-            <button type="submit" class="btn-primary" id="btnSalvar">Salvar processo</button>
-            <button type="button" class="btn-secondary" id="btnCancelarEdicao" style="display:none;">Cancelar edicao</button>
-            <button type="reset" class="btn-secondary">Limpar formulario</button>
-          </div>
-        </form>
+    <section class="card">
+      <h2>Indicadores gerenciais</h2>
+      <p class="sub">Versao V1 baseada em dados atuais do sistema.</p>
+      <div id="mensagemDashboard" class="msg"></div>
+      <div class="kpis">
+        <div class="kpi"><div class="label">Total de processos</div><div id="kpiTotal" class="value">0</div></div>
+        <div class="kpi"><div class="label">Em analise</div><div id="kpiAnalise" class="value">0</div></div>
+        <div class="kpi"><div class="label">Finalizados</div><div id="kpiFinalizados" class="value">0</div></div>
+        <div class="kpi"><div class="label">Aguardando andamento</div><div id="kpiAguardando" class="value">0</div></div>
+        <div class="kpi"><div class="label">Setores ativos</div><div id="kpiSetoresAtivos" class="value">0</div></div>
+        <div class="kpi"><div class="label">Usuarios ativos</div><div id="kpiUsuariosAtivos" class="value">0</div></div>
+        <div class="kpi"><div class="label">Sem destino</div><div id="kpiSemDestino" class="value">0</div></div>
+        <div class="kpi"><div class="label">Taxa finalizacao</div><div id="kpiTaxaFinalizacao" class="value">-</div></div>
       </div>
 
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <h2>Resumo operacional</h2>
-            <p class="card-subtitle">Indicadores rapidos para acompanhamento inicial do fluxo de processos.</p>
-          </div>
+      <div class="row2">
+        <div><h3>Por status</h3><div id="chartStatus" class="bars"></div></div>
+        <div><h3>Por setor de origem</h3><div id="chartOrigem" class="bars"></div></div>
+      </div>
+      <div class="row2">
+        <div><h3>Por setor de destino</h3><div id="chartDestino" class="bars"></div></div>
+        <div><h3>Por perfil</h3><div id="chartPerfil" class="bars"></div></div>
+      </div>
+      <div class="row2">
+        <div>
+          <h3>Fluxos mais frequentes</h3>
+          <div class="table-wrap"><table><thead><tr><th>Origem</th><th>Destino</th><th>Qtd</th></tr></thead><tbody id="tabelaFluxos"></tbody></table></div>
         </div>
-
-        <div class="stats">
-          <div class="stat"><div class="stat-label">Total de processos</div><div class="stat-value" id="statTotal">0</div></div>
-          <div class="stat"><div class="stat-label">Em analise</div><div class="stat-value" id="statAnalise">0</div></div>
-          <div class="stat"><div class="stat-label">Finalizados</div><div class="stat-value" id="statFinalizados">0</div></div>
+        <div><h3>Alertas</h3><div id="listaAlertas" class="alerts"></div></div>
+      </div>
+      <div class="row2">
+        <div>
+          <h3>Recentes</h3>
+          <div class="table-wrap"><table><thead><tr><th>Status</th><th>Protocolo</th><th>Assunto</th><th>Origem</th><th>Destino</th><th>Atualizado</th></tr></thead><tbody id="tabelaRecentes"></tbody></table></div>
         </div>
-
-        <p class="footer-note">Acesso aos processos disponivel apenas para usuarios autenticados com Google IFMS.</p>
+        <div><h3>Metadados</h3><div id="metadadosPainel" class="alerts"></div></div>
       </div>
     </section>
 
     <section class="card">
-      <div class="card-header">
-        <div>
-          <h2>Processos cadastrados</h2>
-          <p class="card-subtitle">Consulta consolidada dos registros lancados no sistema.</p>
+      <h2>Cadastro de processo</h2>
+      <p class="sub">Operacao detalhada preservada na home.</p>
+      <div id="mensagemProcesso" class="msg"></div>
+      <form id="processoForm">
+        <input type="hidden" id="processoId">
+        <div class="grid">
+          <div class="col-2"><label for="status">Status</label><select id="status"><option>Recebido</option><option>Encaminhados Externamente</option><option>Encaminhado Internamente</option><option>Finalizado</option><option>Em analise</option></select></div>
+          <div class="col-2"><label for="precisaResposta">Precisa resposta?</label><select id="precisaResposta"><option>Sim</option><option>Nao</option></select></div>
+          <div class="col-2"><label for="dataRecebimento">Data recebimento</label><input type="date" id="dataRecebimento"></div>
+          <div class="col-2"><label for="prazoDiasUteis">Prazo (dias)</label><input type="number" id="prazoDiasUteis" min="0"></div>
+          <div class="col-4"><label for="protocolo">Protocolo</label><input id="protocolo" required></div>
+          <div class="col-4"><label for="origem">Origem</label><select id="origem"></select></div>
+          <div class="col-4"><label for="destino">Destino</label><select id="destino"></select></div>
+          <div class="col-4"><label for="link">Link</label><input type="url" id="link" placeholder="https://..."></div>
+          <div class="col-8"><label for="assunto">Assunto</label><input id="assunto" required></div>
+          <div class="col-12"><label for="observacao">Observacao</label><textarea id="observacao"></textarea></div>
         </div>
-      </div>
+        <div class="actions"><button class="btn-primary" id="btnSalvar" type="submit">Salvar processo</button><button class="btn-secondary" id="btnCancelarEdicao" type="button" style="display:none;">Cancelar edicao</button><button class="btn-secondary" type="reset">Limpar</button></div>
+      </form>
+    </section>
 
-      <div class="toolbar">
-        <input type="text" id="busca" placeholder="Pesquisar por protocolo, assunto, origem ou destino">
-        <select id="filtroStatus">
-          <option value="">Filtrar por status</option>
-          <option value="Recebido">Recebido</option>
-          <option value="Encaminhados Externamente">Encaminhados Externamente</option>
-          <option value="Encaminhado Internamente">Encaminhado Internamente</option>
-          <option value="Finalizado">Finalizado</option>
-          <option value="Em analise">Em analise</option>
-        </select>
+    <section class="card">
+      <h2>Processos cadastrados</h2>
+      <div class="grid" style="margin-bottom:10px;">
+        <div class="col-6"><input id="busca" placeholder="Pesquisar por protocolo, assunto, origem ou destino"></div>
+        <div class="col-3"><select id="filtroStatus"><option value="">Filtrar por status</option><option value="Recebido">Recebido</option><option value="Encaminhados Externamente">Encaminhados Externamente</option><option value="Encaminhado Internamente">Encaminhado Internamente</option><option value="Finalizado">Finalizado</option><option value="Em analise">Em analise</option></select></div>
       </div>
-
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr><th>Status</th><th>Protocolo</th><th>Assunto</th><th>Origem</th><th>Destino</th><th>Prazo</th><th>Resposta?</th><th>Acoes</th></tr>
-          </thead>
-          <tbody id="tabelaProcessos">
-            <tr><td colspan="8" class="empty">Entre com sua conta Google IFMS para visualizar os processos.</td></tr>
-          </tbody>
-        </table>
-      </div>
+      <div class="table-wrap"><table><thead><tr><th>Status</th><th>Protocolo</th><th>Assunto</th><th>Origem</th><th>Destino</th><th>Prazo</th><th>Resposta?</th><th>Acoes</th></tr></thead><tbody id="tabelaProcessos"><tr><td colspan="8" class="empty">Entre com sua conta Google IFMS para visualizar os processos.</td></tr></tbody></table></div>
     </section>
   </main>
 
   <script>
-    const form = document.getElementById('processoForm');
-    const tabelaProcessos = document.getElementById('tabelaProcessos');
-    const mensagem = document.getElementById('mensagem');
-    const busca = document.getElementById('busca');
-    const filtroStatus = document.getElementById('filtroStatus');
-    const processoId = document.getElementById('processoId');
-    const tituloFormulario = document.getElementById('tituloFormulario');
-    const btnSalvar = document.getElementById('btnSalvar');
-    const btnCancelarEdicao = document.getElementById('btnCancelarEdicao');
-    const statTotal = document.getElementById('statTotal');
-    const statAnalise = document.getElementById('statAnalise');
-    const statFinalizados = document.getElementById('statFinalizados');
-    const selectOrigem = document.getElementById('origem');
-    const selectDestino = document.getElementById('destino');
-
     const usuarioInfo = document.getElementById('usuarioInfo');
     const btnLoginGoogle = document.getElementById('btnLoginGoogle');
     const btnUsuarios = document.getElementById('btnUsuarios');
     const btnSetores = document.getElementById('btnSetores');
     const btnLogout = document.getElementById('btnLogout');
+    const mensagemDashboard = document.getElementById('mensagemDashboard');
+    const mensagemProcesso = document.getElementById('mensagemProcesso');
+    const dashQ = document.getElementById('dashQ');
+    const dashStatus = document.getElementById('dashStatus');
+    const dashOrigem = document.getElementById('dashOrigem');
+    const dashDestino = document.getElementById('dashDestino');
+    const dashPerfil = document.getElementById('dashPerfil');
+    const dashSetorAtivo = document.getElementById('dashSetorAtivo');
+    const dashDataInicio = document.getElementById('dashDataInicio');
+    const dashDataFim = document.getElementById('dashDataFim');
+    const btnAplicarFiltros = document.getElementById('btnAplicarFiltros');
+    const btnLimparFiltros = document.getElementById('btnLimparFiltros');
+    const form = document.getElementById('processoForm');
+    const processoId = document.getElementById('processoId');
+    const btnSalvar = document.getElementById('btnSalvar');
+    const btnCancelarEdicao = document.getElementById('btnCancelarEdicao');
+    const busca = document.getElementById('busca');
+    const filtroStatus = document.getElementById('filtroStatus');
+    const tabelaProcessos = document.getElementById('tabelaProcessos');
+    const selectOrigem = document.getElementById('origem');
+    const selectDestino = document.getElementById('destino');
 
-    let listaProcessos = [];
-    let listaSetores = [];
     let autenticado = false;
     let usuarioAtual = null;
+    let listaSetores = [];
+    let listaProcessos = [];
 
-    function exibirMensagem(texto, tipo) { mensagem.textContent = texto; mensagem.className = `mensagem ${tipo}`; }
-    function limparMensagem() { mensagem.textContent = ''; mensagem.className = 'mensagem'; }
+    function msg(el, texto, tipo) { el.textContent = texto; el.className = `msg ${tipo}`; }
+    function clear(el) { el.textContent = ''; el.className = 'msg'; }
+    function dt(v) { if (!v) return '-'; const d = new Date(v); return Number.isNaN(d.getTime()) ? String(v) : d.toLocaleString('pt-BR'); }
+    function tagStatus(s) { const v = String(s || '').toLowerCase(); if (v.includes('recebido')) return 'tag recebido'; if (v.includes('analise')) return 'tag analise'; if (v.includes('encaminhado')) return 'tag encaminhado'; if (v.includes('finalizado')) return 'tag finalizado'; return 'tag'; }
+    function fillSetor(sel, selected = '') { sel.innerHTML = ['<option value=\"\">Selecione um setor</option>'].concat(listaSetores.map((s) => { const v = `${s.sigla} - ${s.nome}`; return `<option value=\"${v}\" ${v === selected ? 'selected' : ''}>${v}</option>`; })).join(''); }
+    function fillDashSetores() { const opts = ['<option value=\"\">Todos</option>'].concat(listaSetores.map((s) => { const v = `${s.sigla} - ${s.nome}`; return `<option value=\"${v}\">${v}</option>`; })); dashOrigem.innerHTML = opts.join(''); dashDestino.innerHTML = opts.join(''); }
 
-    function preencherSelectSetor(select, valorSelecionado = '') {
-      const opcoes = ['<option value="">Selecione um setor</option>']
-        .concat(listaSetores.map((setor) => {
-          const rotulo = `${setor.sigla} - ${setor.nome}`;
-          const selected = valorSelecionado === rotulo ? 'selected' : '';
-          return `<option value="${rotulo}" ${selected}>${rotulo}</option>`;
-        }));
-      select.innerHTML = opcoes.join('');
+    function bars(el, arr) {
+      const data = Array.isArray(arr) ? arr : [];
+      if (!data.length) { el.innerHTML = '<div class=\"empty\">Sem dados para o recorte.</div>'; return; }
+      const max = Math.max(...data.map((i) => Number(i.qtd || 0)), 1);
+      el.innerHTML = data.slice(0, 10).map((i) => { const qtd = Number(i.qtd || 0); const w = Math.max(4, Math.round((qtd / max) * 100)); return `<div class=\"bar\"><div>${i.label || '-'}</div><div class=\"track\"><div class=\"fill\" style=\"width:${w}%\"></div></div><div>${qtd}</div></div>`; }).join('');
     }
 
-    async function carregarSetores() {
-      if (!autenticado) {
-        listaSetores = [];
-        preencherSelectSetor(selectOrigem);
-        preencherSelectSetor(selectDestino);
-        return;
-      }
-
-      try {
-        const resposta = await fetch('/api/setores');
-        if (!resposta.ok) {
-          listaSetores = [];
-          preencherSelectSetor(selectOrigem);
-          preencherSelectSetor(selectDestino);
-          return;
-        }
-
-        listaSetores = await resposta.json();
-        preencherSelectSetor(selectOrigem);
-        preencherSelectSetor(selectDestino);
-      } catch (error) {
-        listaSetores = [];
-      }
+    function renderFluxos(rows) {
+      const el = document.getElementById('tabelaFluxos');
+      const data = Array.isArray(rows) ? rows : [];
+      if (!data.length) { el.innerHTML = '<tr><td colspan=\"3\" class=\"empty\">Nenhum fluxo encontrado.</td></tr>'; return; }
+      el.innerHTML = data.map((r) => `<tr><td>${r.origem || '-'}</td><td>${r.destino || '-'}</td><td>${r.qtd || 0}</td></tr>`).join('');
     }
 
-    function obterClasseStatus(status) {
-      const valor = (status || '').toLowerCase();
-      if (valor.includes('recebido')) return 'tag recebido';
-      if (valor.includes('analise')) return 'tag analise';
-      if (valor.includes('encaminhado')) return 'tag encaminhado';
-      if (valor.includes('finalizado')) return 'tag finalizado';
-      return 'tag';
+    function renderRecentes(rows) {
+      const el = document.getElementById('tabelaRecentes');
+      const data = Array.isArray(rows) ? rows : [];
+      if (!data.length) { el.innerHTML = '<tr><td colspan=\"6\" class=\"empty\">Nenhum processo recente.</td></tr>'; return; }
+      el.innerHTML = data.map((r) => `<tr><td><span class=\"${tagStatus(r.status)}\">${r.status || '-'}</span></td><td>${r.protocolo || '-'}</td><td>${r.assunto || '-'}</td><td>${r.origem || '-'}</td><td>${r.destino || '-'}</td><td>${dt(r.atualizadoEm || r.criadoEm)}</td></tr>`).join('');
     }
 
-    function atualizarResumo(processos) {
-      statTotal.textContent = processos.length;
-      statAnalise.textContent = processos.filter((p) => p.status === 'Em analise').length;
-      statFinalizados.textContent = processos.filter((p) => p.status === 'Finalizado').length;
+    function renderAlerts(alertas) {
+      const el = document.getElementById('listaAlertas');
+      const itens = alertas?.itens || [];
+      if (!itens.length) { el.innerHTML = '<div class=\"empty\">Sem alertas relevantes.</div>'; return; }
+      el.innerHTML = itens.map((a) => `<div class=\"alert ${a.nivel === 'alto' ? 'alto' : ''}\"><strong>${a.titulo}</strong><br>${a.descricao}<br>Quantidade: <strong>${a.quantidade}</strong></div>`).join('');
     }
 
-    function montarLinha(processo) {
-      return `<tr>
-        <td><span class="${obterClasseStatus(processo.status)}">${processo.status || ''}</span></td>
-        <td>${processo.link ? `<a class="table-link" href="${processo.link}" target="_blank" rel="noopener noreferrer">${processo.protocolo || ''}</a>` : (processo.protocolo || '')}</td>
-        <td>${processo.assunto || ''}</td>
-        <td>${processo.origem || ''}</td>
-        <td>${processo.destino || ''}</td>
-        <td>${processo.prazoDiasUteis || ''}</td>
-        <td>${processo.precisaResposta || ''}</td>
-        <td><div class="table-actions"><button type="button" class="btn-warning" onclick="editarProcesso(${processo.id})">Editar</button></div></td>
-      </tr>`;
+    function renderMeta(meta) {
+      const el = document.getElementById('metadadosPainel');
+      const campos = meta?.camposDisponiveis || {};
+      const parts = [`<div class=\"alert\"><strong>Regra aguardando</strong>: ${meta?.statusAguardandoRegra || '-'}</div>`];
+      Object.entries(campos).forEach(([k, v]) => parts.push(`<div class=\"alert\"><strong>${k}</strong>: ${v ? 'Disponivel' : 'Nao disponivel'}</div>`));
+      el.innerHTML = parts.join('');
     }
 
-    function renderTabela(processos) {
-      if (!processos.length) {
-        tabelaProcessos.innerHTML = '<tr><td colspan="8" class="empty">Nenhum processo cadastrado.</td></tr>';
-        return;
-      }
-      tabelaProcessos.innerHTML = processos.map(montarLinha).join('');
+    function renderKpis(k) {
+      document.getElementById('kpiTotal').textContent = k?.totalProcessos ?? 0;
+      document.getElementById('kpiAnalise').textContent = k?.emAnalise ?? 0;
+      document.getElementById('kpiFinalizados').textContent = k?.finalizados ?? 0;
+      document.getElementById('kpiAguardando').textContent = k?.aguardandoAndamento ?? 0;
+      document.getElementById('kpiSetoresAtivos').textContent = k?.setoresAtivos ?? 0;
+      document.getElementById('kpiUsuariosAtivos').textContent = k?.usuariosAtivos ?? 0;
+      document.getElementById('kpiSemDestino').textContent = k?.processosSemDestino ?? 0;
+      document.getElementById('kpiTaxaFinalizacao').textContent = k?.taxaFinalizacaoPeriodo === null || k?.taxaFinalizacaoPeriodo === undefined ? '-' : `${k.taxaFinalizacaoPeriodo}%`;
     }
 
-    function aplicarFiltros() {
+    function buildDashQuery() {
+      const p = new URLSearchParams();
+      if (dashQ.value.trim()) p.set('q', dashQ.value.trim());
+      if (dashStatus.value) p.set('status', dashStatus.value);
+      if (dashOrigem.value) p.set('origem', dashOrigem.value);
+      if (dashDestino.value) p.set('destino', dashDestino.value);
+      if (dashPerfil.value) p.set('perfil', dashPerfil.value);
+      if (dashSetorAtivo.value) p.set('setorAtivo', dashSetorAtivo.value);
+      if (dashDataInicio.value) p.set('dataInicio', dashDataInicio.value);
+      if (dashDataFim.value) p.set('dataFim', dashDataFim.value);
+      return p.toString();
+    }
+
+    async function loadDashboard() {
       if (!autenticado) return;
-      const termo = busca.value.trim().toLowerCase();
-      const statusSelecionado = filtroStatus.value;
-
-      const filtrados = listaProcessos.filter((processo) => {
-        const atendeTexto = [processo.protocolo, processo.assunto, processo.origem, processo.destino]
-          .some((valor) => String(valor || '').toLowerCase().includes(termo));
-        const atendeStatus = !statusSelecionado || processo.status === statusSelecionado;
-        return atendeTexto && atendeStatus;
-      });
-
-      renderTabela(filtrados);
+      clear(mensagemDashboard);
+      try {
+        const qs = buildDashQuery();
+        const resp = await fetch(qs ? `/api/dashboard/gerencial?${qs}` : '/api/dashboard/gerencial');
+        const data = await resp.json();
+        if (!resp.ok) { msg(mensagemDashboard, data.erro || 'Erro ao carregar painel.', 'erro'); return; }
+        renderKpis(data.kpis);
+        bars(document.getElementById('chartStatus'), data?.graficos?.status);
+        bars(document.getElementById('chartOrigem'), data?.graficos?.origem);
+        bars(document.getElementById('chartDestino'), data?.graficos?.destino);
+        bars(document.getElementById('chartPerfil'), data?.graficos?.perfil);
+        renderFluxos(data?.rankings?.fluxos);
+        renderRecentes(data?.recentes);
+        renderAlerts(data?.alertas);
+        renderMeta(data?.metadados);
+      } catch {
+        msg(mensagemDashboard, 'Falha de comunicacao ao carregar painel.', 'erro');
+      }
     }
 
-    function preencherFormulario(processo) {
-      processoId.value = processo.id;
-      document.getElementById('status').value = processo.status || 'Recebido';
-      document.getElementById('precisaResposta').value = processo.precisaResposta || 'Nao';
-      document.getElementById('dataRecebimento').value = processo.dataRecebimento || '';
-      document.getElementById('protocolo').value = processo.protocolo || '';
-      document.getElementById('link').value = processo.link || '';
-      preencherSelectSetor(selectOrigem, processo.origem || '');
-      preencherSelectSetor(selectDestino, processo.destino || '');
-      document.getElementById('prazoDiasUteis').value = processo.prazoDiasUteis || '';
-      document.getElementById('assunto').value = processo.assunto || '';
-      document.getElementById('observacao').value = processo.observacao || '';
+    function renderProcessos(rows) {
+      if (!rows.length) { tabelaProcessos.innerHTML = '<tr><td colspan=\"8\" class=\"empty\">Nenhum processo cadastrado.</td></tr>'; return; }
+      tabelaProcessos.innerHTML = rows.map((p) => `<tr><td><span class=\"${tagStatus(p.status)}\">${p.status || ''}</span></td><td>${p.link ? `<a href=\"${p.link}\" target=\"_blank\" rel=\"noopener noreferrer\">${p.protocolo || ''}</a>` : (p.protocolo || '')}</td><td>${p.assunto || ''}</td><td>${p.origem || ''}</td><td>${p.destino || ''}</td><td>${p.prazoDiasUteis || ''}</td><td>${p.precisaResposta || ''}</td><td><button class=\"btn-warning\" type=\"button\" onclick=\"editarProcesso(${p.id})\">Editar</button></td></tr>`).join('');
+    }
 
-      tituloFormulario.textContent = 'Edicao de processo';
+    function filtroProcessos() {
+      const termo = busca.value.trim().toLowerCase();
+      const status = filtroStatus.value;
+      const out = listaProcessos.filter((p) => {
+        const txt = [p.protocolo, p.assunto, p.origem, p.destino].some((v) => String(v || '').toLowerCase().includes(termo));
+        return txt && (!status || p.status === status);
+      });
+      renderProcessos(out);
+    }
+
+    async function loadProcessos() {
+      if (!autenticado) { tabelaProcessos.innerHTML = '<tr><td colspan=\"8\" class=\"empty\">Entre com sua conta Google IFMS para visualizar os processos.</td></tr>'; return; }
+      try {
+        const resp = await fetch('/api/processos');
+        const data = await resp.json();
+        if (!resp.ok) { msg(mensagemProcesso, data.erro || 'Erro ao carregar processos.', 'erro'); return; }
+        listaProcessos = data;
+        filtroProcessos();
+      } catch { msg(mensagemProcesso, 'Falha ao carregar processos.', 'erro'); }
+    }
+
+    function resetForm() { form.reset(); processoId.value = ''; fillSetor(selectOrigem); fillSetor(selectDestino); btnSalvar.textContent = 'Salvar processo'; btnCancelarEdicao.style.display = 'none'; }
+
+    function preencherForm(p) {
+      processoId.value = p.id;
+      document.getElementById('status').value = p.status || 'Recebido';
+      document.getElementById('precisaResposta').value = p.precisaResposta || 'Nao';
+      document.getElementById('dataRecebimento').value = p.dataRecebimento || '';
+      document.getElementById('protocolo').value = p.protocolo || '';
+      document.getElementById('link').value = p.link || '';
+      fillSetor(selectOrigem, p.origem || '');
+      fillSetor(selectDestino, p.destino || '');
+      document.getElementById('prazoDiasUteis').value = p.prazoDiasUteis || '';
+      document.getElementById('assunto').value = p.assunto || '';
+      document.getElementById('observacao').value = p.observacao || '';
       btnSalvar.textContent = 'Atualizar processo';
       btnCancelarEdicao.style.display = 'inline-block';
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    function resetarFormulario() {
-      form.reset();
-      processoId.value = '';
-      preencherSelectSetor(selectOrigem);
-      preencherSelectSetor(selectDestino);
-      tituloFormulario.textContent = 'Cadastro de processo';
-      btnSalvar.textContent = 'Salvar processo';
-      btnCancelarEdicao.style.display = 'none';
-    }
-
-    function editarProcesso(id) {
-      const processo = listaProcessos.find((p) => p.id === id);
-      if (!processo) return;
-      preencherFormulario(processo);
-    }
-
-    async function carregarProcessos() {
-      if (!autenticado) {
-        tabelaProcessos.innerHTML = '<tr><td colspan="8" class="empty">Entre com sua conta Google IFMS para visualizar os processos.</td></tr>';
-        atualizarResumo([]);
-        return;
-      }
-
+    async function loadSessao() {
       try {
-        const resposta = await fetch('/api/processos');
-        if (resposta.status === 401) {
-          autenticado = false;
-          aplicarEstadoAutenticacao();
-          return;
-        }
-
-        const processos = await resposta.json();
-        listaProcessos = processos;
-        atualizarResumo(listaProcessos);
-        aplicarFiltros();
-      } catch (erro) {
-        exibirMensagem('Erro ao carregar os processos.', 'erro');
-      }
+        const resp = await fetch('/api/auth/me');
+        const data = await resp.json();
+        autenticado = Boolean(data.autenticado);
+        usuarioAtual = data.usuario || null;
+      } catch { autenticado = false; usuarioAtual = null; }
     }
 
-    async function carregarSessao() {
-      try {
-        const resposta = await fetch('/api/auth/me');
-        const dados = await resposta.json();
-        autenticado = Boolean(dados.autenticado);
-        usuarioAtual = dados.usuario || null;
-      } catch (erro) {
-        autenticado = false;
-        usuarioAtual = null;
-      }
-    }
-
-    function aplicarEstadoAutenticacao() {
+    function authState() {
       if (!autenticado || !usuarioAtual) {
         usuarioInfo.textContent = 'Nao autenticado';
         btnLoginGoogle.classList.remove('hidden');
@@ -402,7 +341,6 @@
         btnSetores.classList.add('hidden');
         return;
       }
-
       usuarioInfo.textContent = `${usuarioAtual.nome} (${usuarioAtual.perfilNome})`;
       btnLoginGoogle.classList.add('hidden');
       btnLogout.classList.remove('hidden');
@@ -410,16 +348,23 @@
       btnSetores.classList.remove('hidden');
     }
 
-    form.addEventListener('submit', async function (event) {
-      event.preventDefault();
-      limparMensagem();
+    async function loadSetores() {
+      if (!autenticado) return;
+      try {
+        const resp = await fetch('/api/setores');
+        const data = await resp.json();
+        listaSetores = resp.ok ? data : [];
+      } catch { listaSetores = []; }
+      fillSetor(selectOrigem);
+      fillSetor(selectDestino);
+      fillDashSetores();
+    }
 
-      if (!autenticado) {
-        exibirMensagem('Entre com sua conta Google IFMS para salvar processos.', 'info');
-        return;
-      }
-
-      const dados = {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clear(mensagemProcesso);
+      if (!autenticado) { msg(mensagemProcesso, 'Entre com sua conta Google IFMS para salvar processos.', 'info'); return; }
+      const payload = {
         status: document.getElementById('status').value,
         precisaResposta: document.getElementById('precisaResposta').value,
         dataRecebimento: document.getElementById('dataRecebimento').value,
@@ -431,58 +376,38 @@
         assunto: document.getElementById('assunto').value,
         observacao: document.getElementById('observacao').value
       };
-
       const id = processoId.value;
       const url = id ? `/api/processos/${id}` : '/api/processos';
-      const metodo = id ? 'PUT' : 'POST';
-
+      const method = id ? 'PUT' : 'POST';
       try {
-        const resposta = await fetch(url, {
-          method: metodo,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(dados)
-        });
-
-        const resultado = await resposta.json();
-        if (!resposta.ok) {
-          exibirMensagem(resultado.erro || 'Erro ao salvar o processo.', 'erro');
-          return;
-        }
-
-        exibirMensagem(id ? 'Processo atualizado com sucesso.' : 'Processo cadastrado com sucesso.', 'sucesso');
-        resetarFormulario();
-        await carregarProcessos();
-      } catch (erro) {
-        exibirMensagem('Erro de comunicacao com o servidor.', 'erro');
-      }
+        const resp = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const data = await resp.json();
+        if (!resp.ok) { msg(mensagemProcesso, data.erro || 'Erro ao salvar processo.', 'erro'); return; }
+        msg(mensagemProcesso, id ? 'Processo atualizado com sucesso.' : 'Processo cadastrado com sucesso.', 'sucesso');
+        resetForm();
+        await loadProcessos();
+        await loadDashboard();
+      } catch { msg(mensagemProcesso, 'Falha de comunicacao com servidor.', 'erro'); }
     });
 
-    btnCancelarEdicao.addEventListener('click', resetarFormulario);
-    busca.addEventListener('input', aplicarFiltros);
-    filtroStatus.addEventListener('change', aplicarFiltros);
+    btnCancelarEdicao.addEventListener('click', resetForm);
+    busca.addEventListener('input', filtroProcessos);
+    filtroStatus.addEventListener('change', filtroProcessos);
+    btnAplicarFiltros.addEventListener('click', loadDashboard);
+    btnLimparFiltros.addEventListener('click', async () => { dashQ.value = ''; dashStatus.value = ''; dashOrigem.value = ''; dashDestino.value = ''; dashPerfil.value = ''; dashSetorAtivo.value = ''; dashDataInicio.value = ''; dashDataFim.value = ''; await loadDashboard(); });
+    btnLogout.addEventListener('click', async () => { await fetch('/api/auth/logout', { method: 'POST' }); location.reload(); });
 
-    btnLogout.addEventListener('click', async () => {
-      await fetch('/api/auth/logout', { method: 'POST' });
-      autenticado = false;
-      usuarioAtual = null;
-      aplicarEstadoAutenticacao();
-      listaProcessos = [];
-      listaSetores = [];
-      atualizarResumo([]);
-      renderTabela([]);
-      preencherSelectSetor(selectOrigem);
-      preencherSelectSetor(selectDestino);
-      exibirMensagem('Sessao encerrada com sucesso.', 'sucesso');
-    });
+    async function init() {
+      await loadSessao();
+      authState();
+      await loadSetores();
+      await loadDashboard();
+      await loadProcessos();
+    }
 
-    (async () => {
-      await carregarSessao();
-      aplicarEstadoAutenticacao();
-      await carregarSetores();
-      await carregarProcessos();
-    })();
-
+    function editarProcesso(id) { const p = listaProcessos.find((x) => x.id === id); if (p) preencherForm(p); }
     window.editarProcesso = editarProcesso;
+    init();
   </script>
 </body>
 </html>
