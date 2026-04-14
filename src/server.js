@@ -26,6 +26,10 @@ function normalizarEmail(email) {
   return String(email || '').trim().toLowerCase();
 }
 
+function normalizarTexto(valor) {
+  return String(valor || '').trim();
+}
+
 function parseCookies(req) {
   const cookieHeader = req.headers.cookie || '';
   return cookieHeader.split(';').reduce((acc, item) => {
@@ -87,6 +91,17 @@ function respostaProcesso(processo) {
     atualizadoPor: processo.atualizado_por,
     criadoEm: processo.criado_em,
     atualizadoEm: processo.atualizado_em
+  };
+}
+
+function respostaSetor(setor) {
+  return {
+    id: Number(setor.id),
+    nome: setor.nome,
+    sigla: setor.sigla,
+    ativo: Boolean(setor.ativo),
+    criadoEm: setor.criado_em,
+    atualizadoEm: setor.atualizado_em
   };
 }
 
@@ -407,6 +422,192 @@ app.get('/api/perfis', exigirAutenticacao, async (req, res) => {
   } catch (error) {
     console.error('Erro ao listar perfis:', error.message);
     res.status(500).json({ erro: 'Erro interno ao listar perfis.' });
+  }
+});
+
+app.get('/api/setores', exigirAutenticacao, async (req, res) => {
+  try {
+    const resultado = await pool.query(
+      `
+        SELECT id, nome, sigla, ativo, criado_em, atualizado_em
+        FROM setores
+        WHERE ativo = TRUE
+        ORDER BY nome
+      `
+    );
+
+    res.json(resultado.rows.map(respostaSetor));
+  } catch (error) {
+    console.error('Erro ao listar setores ativos:', error.message);
+    res.status(500).json({ erro: 'Erro interno ao listar setores.' });
+  }
+});
+
+app.get('/api/setores/todos', exigirAutenticacao, exigirMaster, async (req, res) => {
+  try {
+    const resultado = await pool.query(
+      `
+        SELECT id, nome, sigla, ativo, criado_em, atualizado_em
+        FROM setores
+        ORDER BY nome
+      `
+    );
+
+    res.json(resultado.rows.map(respostaSetor));
+  } catch (error) {
+    console.error('Erro ao listar todos os setores:', error.message);
+    res.status(500).json({ erro: 'Erro interno ao listar setores.' });
+  }
+});
+
+app.post('/api/setores', exigirAutenticacao, exigirMaster, async (req, res) => {
+  const nome = normalizarTexto(req.body.nome);
+  const sigla = normalizarTexto(req.body.sigla).toUpperCase();
+
+  if (!nome || !sigla) {
+    return res.status(400).json({ erro: 'Informe nome e sigla para cadastrar o setor.' });
+  }
+
+  try {
+    const inserido = await pool.query(
+      `
+        INSERT INTO setores (nome, sigla, ativo, atualizado_em)
+        VALUES ($1, $2, TRUE, NOW())
+        RETURNING id, nome, sigla, ativo, criado_em, atualizado_em
+      `,
+      [nome, sigla]
+    );
+
+    res.status(201).json({
+      mensagem: 'Setor cadastrado com sucesso.',
+      setor: respostaSetor(inserido.rows[0])
+    });
+  } catch (error) {
+    if (error.code === '23505') {
+      return res.status(409).json({ erro: 'Ja existe setor com este nome ou sigla.' });
+    }
+
+    console.error('Erro ao cadastrar setor:', error.message);
+    return res.status(500).json({ erro: 'Erro interno ao cadastrar setor.' });
+  }
+});
+
+app.put('/api/setores/:id', exigirAutenticacao, exigirMaster, async (req, res) => {
+  const id = Number(req.params.id);
+
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({ erro: 'Id de setor invalido.' });
+  }
+
+  try {
+    const atual = await pool.query(
+      'SELECT id, nome, sigla, ativo, criado_em, atualizado_em FROM setores WHERE id = $1',
+      [id]
+    );
+
+    if (!atual.rowCount) {
+      return res.status(404).json({ erro: 'Setor nao encontrado.' });
+    }
+
+    const setor = atual.rows[0];
+    const nome = req.body.nome !== undefined ? normalizarTexto(req.body.nome) : setor.nome;
+    const sigla = req.body.sigla !== undefined ? normalizarTexto(req.body.sigla).toUpperCase() : setor.sigla;
+    const ativo = req.body.ativo !== undefined ? Boolean(req.body.ativo) : Boolean(setor.ativo);
+
+    if (!nome || !sigla) {
+      return res.status(400).json({ erro: 'Nome e sigla do setor sao obrigatorios.' });
+    }
+
+    const atualizado = await pool.query(
+      `
+        UPDATE setores
+        SET nome = $1,
+            sigla = $2,
+            ativo = $3,
+            atualizado_em = NOW()
+        WHERE id = $4
+        RETURNING id, nome, sigla, ativo, criado_em, atualizado_em
+      `,
+      [nome, sigla, ativo, id]
+    );
+
+    res.json({
+      mensagem: 'Setor atualizado com sucesso.',
+      setor: respostaSetor(atualizado.rows[0])
+    });
+  } catch (error) {
+    if (error.code === '23505') {
+      return res.status(409).json({ erro: 'Ja existe setor com este nome ou sigla.' });
+    }
+
+    console.error('Erro ao atualizar setor:', error.message);
+    return res.status(500).json({ erro: 'Erro interno ao atualizar setor.' });
+  }
+});
+
+app.post('/api/setores/importar', exigirAutenticacao, exigirMaster, async (req, res) => {
+  const lista = Array.isArray(req.body.setores) ? req.body.setores : [];
+
+  if (!lista.length) {
+    return res.status(400).json({ erro: 'Informe uma lista de setores para importar.' });
+  }
+
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    let inseridos = 0;
+    let atualizados = 0;
+    let ignorados = 0;
+
+    for (const item of lista) {
+      const nome = normalizarTexto(item.nome);
+      const sigla = normalizarTexto(item.sigla).toUpperCase();
+
+      if (!nome || !sigla) {
+        ignorados += 1;
+        continue;
+      }
+
+      const resultado = await client.query(
+        `
+          INSERT INTO setores (nome, sigla, ativo, atualizado_em)
+          VALUES ($1, $2, TRUE, NOW())
+          ON CONFLICT ((LOWER(sigla))) DO UPDATE
+            SET nome = EXCLUDED.nome,
+                sigla = EXCLUDED.sigla,
+                ativo = TRUE,
+                atualizado_em = NOW()
+          RETURNING (xmax = 0) AS inserido
+        `,
+        [nome, sigla]
+      );
+
+      if (resultado.rows[0].inserido) {
+        inseridos += 1;
+      } else {
+        atualizados += 1;
+      }
+    }
+
+    await client.query('COMMIT');
+
+    res.json({
+      mensagem: 'Importacao de setores concluida.',
+      resumo: { inseridos, atualizados, ignorados }
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+
+    if (error.code === '23505') {
+      return res.status(409).json({ erro: 'Conflito de nome ou sigla ao importar setores.' });
+    }
+
+    console.error('Erro ao importar setores:', error.message);
+    return res.status(500).json({ erro: 'Erro interno ao importar setores.' });
+  } finally {
+    client.release();
   }
 });
 
@@ -764,6 +965,10 @@ app.put('/api/processos/:id', exigirAutenticacao, async (req, res) => {
 
 app.get('/usuarios', exigirAutenticacao, (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'usuarios.html'));
+});
+
+app.get('/setores', exigirAutenticacao, (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'setores.html'));
 });
 
 (async () => {

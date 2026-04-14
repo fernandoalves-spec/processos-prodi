@@ -59,6 +59,21 @@ async function initDatabase() {
     await client.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS ultimo_login_em TIMESTAMPTZ`);
 
     await client.query(`
+      CREATE TABLE IF NOT EXISTS setores (
+        id SERIAL PRIMARY KEY,
+        nome TEXT NOT NULL,
+        sigla TEXT NOT NULL,
+        ativo BOOLEAN NOT NULL DEFAULT TRUE,
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        atualizado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`ALTER TABLE setores ADD COLUMN IF NOT EXISTS ativo BOOLEAN NOT NULL DEFAULT TRUE`);
+    await client.query(`ALTER TABLE setores ADD COLUMN IF NOT EXISTS criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()`);
+    await client.query(`ALTER TABLE setores ADD COLUMN IF NOT EXISTS atualizado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()`);
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS processos (
         id SERIAL PRIMARY KEY,
         status TEXT NOT NULL DEFAULT 'Recebido',
@@ -124,6 +139,8 @@ async function initDatabase() {
 
     await client.query('CREATE INDEX IF NOT EXISTS idx_sessoes_expira_em ON sessoes(expira_em)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_processos_protocolo ON processos(protocolo)');
+    await client.query('CREATE UNIQUE INDEX IF NOT EXISTS uq_setores_sigla_lower ON setores ((LOWER(sigla)))');
+    await client.query('CREATE UNIQUE INDEX IF NOT EXISTS uq_setores_nome_lower ON setores ((LOWER(nome)))');
 
     for (const perfil of PERFIS) {
       await client.query(
