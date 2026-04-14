@@ -1,260 +1,609 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Processos PRODI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --if-verde: #32A041;
+      --if-vermelho: #C8191E;
+      --if-preto: #000000;
+      --bg: #f4f6f8;
+      --card: #ffffff;
+      --border: #d9e2dc;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --header: #0f172a;
+      --header-soft: #1e293b;
+      --success-bg: #ecfdf3;
+      --success-border: #86efac;
+      --success-text: #166534;
+      --error-bg: #fef2f2;
+      --error-border: #fca5a5;
+      --error-text: #991b1b;
+      --shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      --radius: 14px;
+    }
+
     * {
       box-sizing: border-box;
     }
 
-    body {
+    html, body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
-      color: #1f2937;
+      padding: 0;
+      font-family: 'Open Sans', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    body {
+      min-height: 100vh;
+    }
+
+    .topbar {
+      height: 6px;
+      background: linear-gradient(90deg, var(--if-verde) 0 82%, var(--if-vermelho) 82% 100%);
     }
 
     header {
-      background: #0f172a;
+      background: linear-gradient(135deg, var(--header) 0%, var(--header-soft) 100%);
       color: #fff;
-      padding: 20px 32px;
+      padding: 24px 20px;
+      border-bottom: 4px solid var(--if-verde);
     }
 
-    header h1 {
+    .header-content {
+      max-width: 1240px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand-text h1 {
       margin: 0;
-      font-size: 28px;
+      font-size: 2rem;
+      line-height: 1.1;
+      font-weight: 700;
     }
 
-    header p {
+    .brand-text p {
       margin: 6px 0 0;
-      font-size: 14px;
-      color: #cbd5e1;
+      font-size: 0.98rem;
+      color: #d1d5db;
+    }
+
+    .badge {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.14);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      white-space: nowrap;
     }
 
     main {
-      max-width: 1200px;
+      max-width: 1240px;
       margin: 24px auto;
-      padding: 0 16px;
+      padding: 0 16px 32px;
     }
 
-    .card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    .dashboard {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 20px;
       margin-bottom: 20px;
     }
 
-    .card h2 {
-      margin-top: 0;
-      font-size: 20px;
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
     }
 
-    .grid {
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .card h2 {
+      margin: 0;
+      font-size: 1.15rem;
+      color: var(--if-preto);
+    }
+
+    .card-subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.45;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #f0fdf4;
+      color: var(--if-verde);
+      border: 1px solid #bbf7d0;
+      font-size: 0.85rem;
+      font-weight: 700;
+    }
+
+    .status-pill::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      background: var(--if-verde);
+      border-radius: 50%;
+    }
+
+    .stats {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+
+    .stat {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      background: #fbfcfb;
+    }
+
+    .stat-label {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--if-preto);
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
       gap: 16px;
     }
 
     .field {
       display: flex;
       flex-direction: column;
+      gap: 6px;
     }
 
-    .field.full {
-      grid-column: 1 / -1;
-    }
+    .field.col-3 { grid-column: span 3; }
+    .field.col-4 { grid-column: span 4; }
+    .field.col-6 { grid-column: span 6; }
+    .field.col-12 { grid-column: span 12; }
 
     label {
-      font-size: 14px;
-      font-weight: bold;
-      margin-bottom: 6px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #334155;
     }
 
-    input, select, textarea, button {
-      padding: 10px 12px;
+    input,
+    select,
+    textarea {
+      width: 100%;
       border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      font-size: 14px;
+      background: #fff;
+      border-radius: 10px;
+      padding: 12px 12px;
+      font-size: 16px;
+      color: var(--text);
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      border-color: var(--if-verde);
+      box-shadow: 0 0 0 3px rgba(50, 160, 65, 0.12);
     }
 
     textarea {
-      min-height: 90px;
       resize: vertical;
+      min-height: 96px;
     }
 
     .actions {
-      margin-top: 16px;
       display: flex;
       gap: 12px;
+      margin-top: 18px;
+      flex-wrap: wrap;
     }
 
     button {
-      background: #0f62fe;
-      color: #fff;
       border: none;
+      border-radius: 10px;
+      padding: 12px 18px;
+      font-size: 0.95rem;
+      font-weight: 700;
       cursor: pointer;
+      transition: transform .08s ease, opacity .2s ease, background .2s ease;
+      min-height: 44px;
     }
 
-    button.secondary {
-      background: #475569;
+    button:hover {
+      opacity: .95;
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    .btn-primary {
+      background: var(--if-verde);
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 240px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
     }
 
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 12px;
+      min-width: 820px;
     }
 
-    th, td {
-      border: 1px solid #e2e8f0;
-      padding: 10px;
+    thead th {
+      background: #f8fafc;
+      color: #334155;
+      font-size: 0.88rem;
+      font-weight: 700;
       text-align: left;
-      font-size: 14px;
+      padding: 14px 12px;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+
+    tbody td {
+      padding: 14px 12px;
+      border-bottom: 1px solid #edf2f7;
+      font-size: 0.93rem;
       vertical-align: top;
     }
 
-    th {
-      background: #f8fafc;
+    tbody tr:hover {
+      background: #f9fbfa;
     }
 
+    .table-link {
+      color: var(--if-verde);
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .table-link:hover {
+      text-decoration: underline;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .tag.recebido { background: #ecfdf3; color: #166534; }
+    .tag.analise { background: #eff6ff; color: #1d4ed8; }
+    .tag.encaminhado { background: #fff7ed; color: #c2410c; }
+    .tag.finalizado { background: #f3f4f6; color: #374151; }
+
     .empty {
-      color: #64748b;
-      font-style: italic;
       text-align: center;
+      color: var(--muted);
+      font-style: italic;
+      padding: 24px !important;
     }
 
     .mensagem {
       margin-bottom: 16px;
       padding: 12px 14px;
-      border-radius: 8px;
+      border-radius: 10px;
       display: none;
-      font-size: 14px;
+      font-size: 0.92rem;
+      font-weight: 600;
     }
 
     .mensagem.sucesso {
       display: block;
-      background: #dcfce7;
-      color: #166534;
-      border: 1px solid #86efac;
+      background: var(--success-bg);
+      color: var(--success-text);
+      border: 1px solid var(--success-border);
     }
 
     .mensagem.erro {
       display: block;
-      background: #fee2e2;
-      color: #991b1b;
-      border: 1px solid #fca5a5;
+      background: var(--error-bg);
+      color: var(--error-text);
+      border: 1px solid var(--error-border);
     }
 
-    @media (max-width: 900px) {
-      .grid {
+    .footer-note {
+      margin-top: 10px;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 1024px) {
+      .dashboard {
         grid-template-columns: 1fr;
+      }
+
+      .field.col-3,
+      .field.col-4,
+      .field.col-6 {
+        grid-column: span 6;
+      }
+    }
+
+    @media (max-width: 700px) {
+      header {
+        padding: 20px 16px;
+      }
+
+      .header-content {
+        align-items: flex-start;
+      }
+
+      .brand-text h1 {
+        font-size: 1.55rem;
+      }
+
+      .brand-text p {
+        font-size: 0.92rem;
+      }
+
+      .badge {
+        width: 100%;
+        text-align: center;
+      }
+
+      main {
+        margin: 18px auto;
+        padding: 0 12px 24px;
+      }
+
+      .card {
+        padding: 16px;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .field.col-3,
+      .field.col-4,
+      .field.col-6,
+      .field.col-12 {
+        grid-column: span 12;
+      }
+
+      .actions {
+        flex-direction: column;
+      }
+
+      button {
+        width: 100%;
+      }
+
+      .search-box {
+        min-width: 100%;
       }
     }
   </style>
 </head>
 <body>
+  <div class="topbar"></div>
+
   <header>
-    <h1>Processos PRODI</h1>
-    <p>Sistema de registro, acompanhamento e controle de processos</p>
+    <div class="header-content">
+      <div class="brand-text">
+        <h1>Processos PRODI</h1>
+        <p>Pró-Reitoria de Desenvolvimento Institucional · IFMS</p>
+      </div>
+      <div class="badge">Ambiente de gestão de processos</div>
+    </div>
   </header>
 
   <main>
-    <section class="card">
-      <h2>Novo processo</h2>
+    <section class="dashboard">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Cadastro de processo</h2>
+            <p class="card-subtitle">Registre, acompanhe e atualize processos administrativos em uma interface responsiva e preparada para uso em desktop e celular.</p>
+          </div>
+          <span class="status-pill">Sistema ativo</span>
+        </div>
 
-      <div id="mensagem" class="mensagem"></div>
+        <div id="mensagem" class="mensagem"></div>
 
-      <form id="processoForm">
-        <div class="grid">
-          <div class="field">
-            <label for="status">Status</label>
-            <select id="status" name="status">
-              <option>Recebido</option>
-              <option>Encaminhados Externamente</option>
-              <option>Encaminhado Internamente</option>
-              <option>Finalizado</option>
-              <option>Em análise</option>
-            </select>
+        <form id="processoForm">
+          <div class="form-grid">
+            <div class="field col-3">
+              <label for="status">Status</label>
+              <select id="status" name="status">
+                <option>Recebido</option>
+                <option>Encaminhados Externamente</option>
+                <option>Encaminhado Internamente</option>
+                <option>Finalizado</option>
+                <option>Em análise</option>
+              </select>
+            </div>
+
+            <div class="field col-3">
+              <label for="precisaResposta">Precisa de resposta?</label>
+              <select id="precisaResposta" name="precisaResposta">
+                <option>Sim</option>
+                <option>Não</option>
+              </select>
+            </div>
+
+            <div class="field col-3">
+              <label for="dataRecebimento">Data de recebimento</label>
+              <input type="date" id="dataRecebimento" name="dataRecebimento">
+            </div>
+
+            <div class="field col-3">
+              <label for="prazoDiasUteis">Prazo em dias úteis</label>
+              <input type="number" id="prazoDiasUteis" name="prazoDiasUteis" min="0">
+            </div>
+
+            <div class="field col-4">
+              <label for="protocolo">Protocolo</label>
+              <input type="text" id="protocolo" name="protocolo" required>
+            </div>
+
+            <div class="field col-4">
+              <label for="origem">Origem</label>
+              <input type="text" id="origem" name="origem">
+            </div>
+
+            <div class="field col-4">
+              <label for="destino">Destino</label>
+              <input type="text" id="destino" name="destino">
+            </div>
+
+            <div class="field col-12">
+              <label for="link">Link do processo no SUAP</label>
+              <input type="url" id="link" name="link" placeholder="https://...">
+            </div>
+
+            <div class="field col-12">
+              <label for="assunto">Assunto</label>
+              <input type="text" id="assunto" name="assunto" required>
+            </div>
+
+            <div class="field col-12">
+              <label for="observacao">Observação</label>
+              <textarea id="observacao" name="observacao" placeholder="Informações complementares, encaminhamentos ou observações internas."></textarea>
+            </div>
           </div>
 
-          <div class="field">
-            <label for="precisaResposta">Precisa de Resposta?</label>
-            <select id="precisaResposta" name="precisaResposta">
-              <option>Sim</option>
-              <option>Não</option>
-            </select>
+          <div class="actions">
+            <button type="submit" class="btn-primary">Salvar processo</button>
+            <button type="reset" class="btn-secondary">Limpar formulário</button>
           </div>
+        </form>
+      </div>
 
-          <div class="field">
-            <label for="dataRecebimento">Data de recebimento</label>
-            <input type="date" id="dataRecebimento" name="dataRecebimento">
-          </div>
-
-          <div class="field">
-            <label for="protocolo">Protocolo</label>
-            <input type="text" id="protocolo" name="protocolo" required>
-          </div>
-
-          <div class="field full">
-            <label for="link">Link do processo no SUAP</label>
-            <input type="url" id="link" name="link">
-          </div>
-
-          <div class="field">
-            <label for="origem">Origem</label>
-            <input type="text" id="origem" name="origem">
-          </div>
-
-          <div class="field">
-            <label for="destino">Destino</label>
-            <input type="text" id="destino" name="destino">
-          </div>
-
-          <div class="field">
-            <label for="prazoDiasUteis">Prazo em dias úteis</label>
-            <input type="number" id="prazoDiasUteis" name="prazoDiasUteis" min="0">
-          </div>
-
-          <div class="field full">
-            <label for="assunto">Assunto</label>
-            <input type="text" id="assunto" name="assunto" required>
-          </div>
-
-          <div class="field full">
-            <label for="observacao">Observação</label>
-            <textarea id="observacao" name="observacao"></textarea>
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Resumo operacional</h2>
+            <p class="card-subtitle">Indicadores rápidos para acompanhamento inicial do fluxo de processos.</p>
           </div>
         </div>
 
-        <div class="actions">
-          <button type="submit">Salvar processo</button>
-          <button type="reset" class="secondary">Limpar</button>
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-label">Total de processos</div>
+            <div class="stat-value" id="statTotal">0</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Em análise</div>
+            <div class="stat-value" id="statAnalise">0</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Finalizados</div>
+            <div class="stat-value" id="statFinalizados">0</div>
+          </div>
         </div>
-      </form>
+
+        <p class="footer-note">
+          Estrutura pronta para evoluir com filtros, edição, finalização, prazos e integração com banco de dados.
+        </p>
+      </div>
     </section>
 
     <section class="card">
-      <h2>Processos cadastrados</h2>
-      <table>
-        <thead>
-          <tr>
-            <th>Status</th>
-            <th>Protocolo</th>
-            <th>Assunto</th>
-            <th>Origem</th>
-            <th>Destino</th>
-            <th>Prazo</th>
-          </tr>
-        </thead>
-        <tbody id="tabelaProcessos">
-          <tr>
-            <td colspan="6" class="empty">Nenhum processo cadastrado até o momento.</td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="card-header">
+        <div>
+          <h2>Processos cadastrados</h2>
+          <p class="card-subtitle">Consulta consolidada dos registros lançados no sistema.</p>
+        </div>
+      </div>
+
+      <div class="toolbar">
+        <input
+          type="text"
+          id="busca"
+          class="search-box"
+          placeholder="Pesquisar por protocolo, assunto, origem ou destino"
+        >
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Protocolo</th>
+              <th>Assunto</th>
+              <th>Origem</th>
+              <th>Destino</th>
+              <th>Prazo</th>
+              <th>Resposta?</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaProcessos">
+            <tr>
+              <td colspan="7" class="empty">Nenhum processo cadastrado até o momento.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
     </section>
   </main>
 
@@ -262,6 +611,13 @@
     const form = document.getElementById('processoForm');
     const tabelaProcessos = document.getElementById('tabelaProcessos');
     const mensagem = document.getElementById('mensagem');
+    const busca = document.getElementById('busca');
+
+    const statTotal = document.getElementById('statTotal');
+    const statAnalise = document.getElementById('statAnalise');
+    const statFinalizados = document.getElementById('statFinalizados');
+
+    let listaProcessos = [];
 
     function exibirMensagem(texto, tipo) {
       mensagem.textContent = texto;
@@ -273,21 +629,74 @@
       mensagem.className = 'mensagem';
     }
 
+    function obterClasseStatus(status) {
+      const valor = (status || '').toLowerCase();
+
+      if (valor.includes('recebido')) return 'tag recebido';
+      if (valor.includes('análise')) return 'tag analise';
+      if (valor.includes('encaminhado')) return 'tag encaminhado';
+      if (valor.includes('finalizado')) return 'tag finalizado';
+
+      return 'tag';
+    }
+
+    function atualizarResumo(processos) {
+      statTotal.textContent = processos.length;
+      statAnalise.textContent = processos.filter(p => (p.status || '') === 'Em análise').length;
+      statFinalizados.textContent = processos.filter(p => (p.status || '') === 'Finalizado').length;
+    }
+
     function montarLinha(processo) {
       return `
         <tr>
-          <td>${processo.status || ''}</td>
+          <td><span class="${obterClasseStatus(processo.status)}">${processo.status || ''}</span></td>
           <td>
-            ${processo.link
-              ? `<a href="${processo.link}" target="_blank">${processo.protocolo || ''}</a>`
-              : (processo.protocolo || '')}
+            ${
+              processo.link
+                ? `<a class="table-link" href="${processo.link}" target="_blank" rel="noopener noreferrer">${processo.protocolo || ''}</a>`
+                : (processo.protocolo || '')
+            }
           </td>
           <td>${processo.assunto || ''}</td>
           <td>${processo.origem || ''}</td>
           <td>${processo.destino || ''}</td>
           <td>${processo.prazoDiasUteis || ''}</td>
+          <td>${processo.precisaResposta || ''}</td>
         </tr>
       `;
+    }
+
+    function renderTabela(processos) {
+      if (!processos.length) {
+        tabelaProcessos.innerHTML = `
+          <tr>
+            <td colspan="7" class="empty">Nenhum processo cadastrado até o momento.</td>
+          </tr>
+        `;
+        return;
+      }
+
+      tabelaProcessos.innerHTML = processos.map(montarLinha).join('');
+    }
+
+    function aplicarBusca() {
+      const termo = busca.value.trim().toLowerCase();
+
+      if (!termo) {
+        renderTabela(listaProcessos);
+        return;
+      }
+
+      const filtrados = listaProcessos.filter((processo) => {
+        return [
+          processo.protocolo,
+          processo.assunto,
+          processo.origem,
+          processo.destino
+        ].some(valor => String(valor || '').toLowerCase().includes(termo));
+      });
+
+      renderTabela(filtrados);
     }
 
     async function carregarProcessos() {
@@ -295,16 +704,9 @@
         const resposta = await fetch('/api/processos');
         const processos = await resposta.json();
 
-        if (!processos.length) {
-          tabelaProcessos.innerHTML = `
-            <tr>
-              <td colspan="6" class="empty">Nenhum processo cadastrado até o momento.</td>
-            </tr>
-          `;
-          return;
-        }
-
-        tabelaProcessos.innerHTML = processos.map(montarLinha).join('');
+        listaProcessos = processos;
+        atualizarResumo(listaProcessos);
+        aplicarBusca();
       } catch (erro) {
         exibirMensagem('Erro ao carregar os processos.', 'erro');
       }
@@ -345,11 +747,13 @@
 
         exibirMensagem('Processo cadastrado com sucesso.', 'sucesso');
         form.reset();
-        carregarProcessos();
+        await carregarProcessos();
       } catch (erro) {
         exibirMensagem('Erro de comunicação com o servidor.', 'erro');
       }
     });
+
+    busca.addEventListener('input', aplicarBusca);
 
     carregarProcessos();
   </script>
