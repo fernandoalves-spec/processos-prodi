@@ -9,8 +9,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --if-verde: #32A041;
-      --if-vermelho: #C8191E;
+      --if-verde: #32a041;
+      --if-vermelho: #c8191e;
       --if-preto: #000000;
       --bg: #f4f6f8;
       --card: #ffffff;
@@ -25,6 +25,9 @@
       --error-bg: #fef2f2;
       --error-border: #fca5a5;
       --error-text: #991b1b;
+      --info-bg: #eff6ff;
+      --info-border: #93c5fd;
+      --info-text: #1e40af;
       --shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
       --radius: 14px;
     }
@@ -74,16 +77,31 @@
       color: #d1d5db;
     }
 
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
     .badge {
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.14);
       color: #fff;
       padding: 10px 14px;
       border-radius: 999px;
-      font-size: 0.88rem;
+      font-size: 0.86rem;
       font-weight: 600;
       white-space: nowrap;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 40px;
     }
+
+    .badge.action { background: rgba(50, 160, 65, 0.24); }
+    .badge.secondary { background: rgba(255, 255, 255, 0.14); cursor: pointer; border: none; }
 
     main {
       max-width: 1240px;
@@ -324,19 +342,9 @@
       font-weight: 600;
     }
 
-    .mensagem.sucesso {
-      display: block;
-      background: var(--success-bg);
-      color: var(--success-text);
-      border: 1px solid var(--success-border);
-    }
-
-    .mensagem.erro {
-      display: block;
-      background: var(--error-bg);
-      color: var(--error-text);
-      border: 1px solid var(--error-border);
-    }
+    .mensagem.sucesso { display: block; background: var(--success-bg); color: var(--success-text); border: 1px solid var(--success-border); }
+    .mensagem.erro { display: block; background: var(--error-bg); color: var(--error-text); border: 1px solid var(--error-border); }
+    .mensagem.info { display: block; background: var(--info-bg); color: var(--info-text); border: 1px solid var(--info-border); }
 
     .footer-note {
       margin-top: 10px;
@@ -345,28 +353,24 @@
       line-height: 1.5;
     }
 
-    @media (max-width: 1024px) {
-      .dashboard {
-        grid-template-columns: 1fr;
-      }
+    .hidden { display: none !important; }
 
+    @media (max-width: 1024px) {
+      .dashboard { grid-template-columns: 1fr; }
       .field.col-3,
-      .field.col-4 {
-        grid-column: span 6;
-      }
+      .field.col-4 { grid-column: span 6; }
     }
 
     @media (max-width: 700px) {
       .brand-text h1 { font-size: 1.55rem; }
       .badge { width: 100%; text-align: center; }
+      .header-actions { width: 100%; }
       main { padding: 0 12px 24px; }
       .card { padding: 16px; }
       .stats { grid-template-columns: 1fr; }
       .field.col-3,
       .field.col-4,
-      .field.col-12 {
-        grid-column: span 12;
-      }
+      .field.col-12 { grid-column: span 12; }
       .actions { flex-direction: column; }
       button { width: 100%; }
       .toolbar { grid-template-columns: 1fr; }
@@ -380,9 +384,14 @@
     <div class="header-content">
       <div class="brand-text">
         <h1>Processos PRODI</h1>
-        <p>Pró-Reitoria de Desenvolvimento Institucional · IFMS</p>
+        <p>Pro-Reitoria de Desenvolvimento Institucional � IFMS</p>
       </div>
-      <div class="badge">Ambiente de gestão de processos</div>
+      <div class="header-actions">
+        <span class="badge" id="usuarioInfo">Nao autenticado</span>
+        <a class="badge action" id="btnLoginGoogle" href="/auth/google">Entrar com Google</a>
+        <a class="badge action hidden" id="btnUsuarios" href="/usuarios">Cadastrar usuarios</a>
+        <button class="badge secondary hidden" id="btnLogout" type="button">Sair</button>
+      </div>
     </div>
   </header>
 
@@ -410,7 +419,7 @@
                 <option>Encaminhados Externamente</option>
                 <option>Encaminhado Internamente</option>
                 <option>Finalizado</option>
-                <option>Em análise</option>
+                <option>Em analise</option>
               </select>
             </div>
 
@@ -418,7 +427,7 @@
               <label for="precisaResposta">Precisa de resposta?</label>
               <select id="precisaResposta" name="precisaResposta">
                 <option>Sim</option>
-                <option>Não</option>
+                <option>Nao</option>
               </select>
             </div>
 
@@ -428,7 +437,7 @@
             </div>
 
             <div class="field col-3">
-              <label for="prazoDiasUteis">Prazo em dias úteis</label>
+              <label for="prazoDiasUteis">Prazo em dias uteis</label>
               <input type="number" id="prazoDiasUteis" name="prazoDiasUteis" min="0">
             </div>
 
@@ -458,15 +467,15 @@
             </div>
 
             <div class="field col-12">
-              <label for="observacao">Observação</label>
-              <textarea id="observacao" name="observacao" placeholder="Informações complementares, encaminhamentos ou observações internas."></textarea>
+              <label for="observacao">Observacao</label>
+              <textarea id="observacao" name="observacao" placeholder="Informacoes complementares, encaminhamentos ou observacoes internas."></textarea>
             </div>
           </div>
 
           <div class="actions">
             <button type="submit" class="btn-primary" id="btnSalvar">Salvar processo</button>
-            <button type="button" class="btn-secondary" id="btnCancelarEdicao" style="display:none;">Cancelar edição</button>
-            <button type="reset" class="btn-secondary">Limpar formulário</button>
+            <button type="button" class="btn-secondary" id="btnCancelarEdicao" style="display:none;">Cancelar edicao</button>
+            <button type="reset" class="btn-secondary">Limpar formulario</button>
           </div>
         </form>
       </div>
@@ -475,7 +484,7 @@
         <div class="card-header">
           <div>
             <h2>Resumo operacional</h2>
-            <p class="card-subtitle">Indicadores rápidos para acompanhamento inicial do fluxo de processos.</p>
+            <p class="card-subtitle">Indicadores rapidos para acompanhamento inicial do fluxo de processos.</p>
           </div>
         </div>
 
@@ -485,7 +494,7 @@
             <div class="stat-value" id="statTotal">0</div>
           </div>
           <div class="stat">
-            <div class="stat-label">Em análise</div>
+            <div class="stat-label">Em analise</div>
             <div class="stat-value" id="statAnalise">0</div>
           </div>
           <div class="stat">
@@ -494,9 +503,7 @@
           </div>
         </div>
 
-        <p class="footer-note">
-          Estrutura pronta para evoluir com filtros, finalização, prazos e integração com banco de dados.
-        </p>
+        <p class="footer-note">Acesso aos processos disponivel apenas para usuarios autenticados com Google IFMS.</p>
       </div>
     </section>
 
@@ -504,7 +511,7 @@
       <div class="card-header">
         <div>
           <h2>Processos cadastrados</h2>
-          <p class="card-subtitle">Consulta consolidada dos registros lançados no sistema.</p>
+          <p class="card-subtitle">Consulta consolidada dos registros lancados no sistema.</p>
         </div>
       </div>
 
@@ -516,7 +523,7 @@
           <option value="Encaminhados Externamente">Encaminhados Externamente</option>
           <option value="Encaminhado Internamente">Encaminhado Internamente</option>
           <option value="Finalizado">Finalizado</option>
-          <option value="Em análise">Em análise</option>
+          <option value="Em analise">Em analise</option>
         </select>
       </div>
 
@@ -531,12 +538,12 @@
               <th>Destino</th>
               <th>Prazo</th>
               <th>Resposta?</th>
-              <th>Ações</th>
+              <th>Acoes</th>
             </tr>
           </thead>
           <tbody id="tabelaProcessos">
             <tr>
-              <td colspan="8" class="empty">Nenhum processo cadastrado até o momento.</td>
+              <td colspan="8" class="empty">Entre com sua conta Google IFMS para visualizar os processos.</td>
             </tr>
           </tbody>
         </table>
@@ -554,12 +561,18 @@
     const tituloFormulario = document.getElementById('tituloFormulario');
     const btnSalvar = document.getElementById('btnSalvar');
     const btnCancelarEdicao = document.getElementById('btnCancelarEdicao');
-
     const statTotal = document.getElementById('statTotal');
     const statAnalise = document.getElementById('statAnalise');
     const statFinalizados = document.getElementById('statFinalizados');
 
+    const usuarioInfo = document.getElementById('usuarioInfo');
+    const btnLoginGoogle = document.getElementById('btnLoginGoogle');
+    const btnUsuarios = document.getElementById('btnUsuarios');
+    const btnLogout = document.getElementById('btnLogout');
+
     let listaProcessos = [];
+    let autenticado = false;
+    let usuarioAtual = null;
 
     function exibirMensagem(texto, tipo) {
       mensagem.textContent = texto;
@@ -574,7 +587,7 @@
     function obterClasseStatus(status) {
       const valor = (status || '').toLowerCase();
       if (valor.includes('recebido')) return 'tag recebido';
-      if (valor.includes('análise')) return 'tag analise';
+      if (valor.includes('analise')) return 'tag analise';
       if (valor.includes('encaminhado')) return 'tag encaminhado';
       if (valor.includes('finalizado')) return 'tag finalizado';
       return 'tag';
@@ -582,8 +595,8 @@
 
     function atualizarResumo(processos) {
       statTotal.textContent = processos.length;
-      statAnalise.textContent = processos.filter(p => p.status === 'Em análise').length;
-      statFinalizados.textContent = processos.filter(p => p.status === 'Finalizado').length;
+      statAnalise.textContent = processos.filter((p) => p.status === 'Em analise').length;
+      statFinalizados.textContent = processos.filter((p) => p.status === 'Finalizado').length;
     }
 
     function montarLinha(processo) {
@@ -615,7 +628,7 @@
       if (!processos.length) {
         tabelaProcessos.innerHTML = `
           <tr>
-            <td colspan="8" class="empty">Nenhum processo cadastrado até o momento.</td>
+            <td colspan="8" class="empty">Nenhum processo cadastrado.</td>
           </tr>
         `;
         return;
@@ -625,6 +638,8 @@
     }
 
     function aplicarFiltros() {
+      if (!autenticado) return;
+
       const termo = busca.value.trim().toLowerCase();
       const statusSelecionado = filtroStatus.value;
 
@@ -634,7 +649,7 @@
           processo.assunto,
           processo.origem,
           processo.destino
-        ].some(valor => String(valor || '').toLowerCase().includes(termo));
+        ].some((valor) => String(valor || '').toLowerCase().includes(termo));
 
         const atendeStatus = !statusSelecionado || processo.status === statusSelecionado;
 
@@ -647,7 +662,7 @@
     function preencherFormulario(processo) {
       processoId.value = processo.id;
       document.getElementById('status').value = processo.status || 'Recebido';
-      document.getElementById('precisaResposta').value = processo.precisaResposta || 'Não';
+      document.getElementById('precisaResposta').value = processo.precisaResposta || 'Nao';
       document.getElementById('dataRecebimento').value = processo.dataRecebimento || '';
       document.getElementById('protocolo').value = processo.protocolo || '';
       document.getElementById('link').value = processo.link || '';
@@ -657,7 +672,7 @@
       document.getElementById('assunto').value = processo.assunto || '';
       document.getElementById('observacao').value = processo.observacao || '';
 
-      tituloFormulario.textContent = 'Edição de processo';
+      tituloFormulario.textContent = 'Edicao de processo';
       btnSalvar.textContent = 'Atualizar processo';
       btnCancelarEdicao.style.display = 'inline-block';
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -672,14 +687,27 @@
     }
 
     function editarProcesso(id) {
-      const processo = listaProcessos.find(p => p.id === id);
+      const processo = listaProcessos.find((p) => p.id === id);
       if (!processo) return;
       preencherFormulario(processo);
     }
 
     async function carregarProcessos() {
+      if (!autenticado) {
+        tabelaProcessos.innerHTML = '<tr><td colspan="8" class="empty">Entre com sua conta Google IFMS para visualizar os processos.</td></tr>';
+        atualizarResumo([]);
+        return;
+      }
+
       try {
         const resposta = await fetch('/api/processos');
+
+        if (resposta.status === 401) {
+          autenticado = false;
+          aplicarEstadoAutenticacao();
+          return;
+        }
+
         const processos = await resposta.json();
 
         listaProcessos = processos;
@@ -690,9 +718,41 @@
       }
     }
 
+    async function carregarSessao() {
+      try {
+        const resposta = await fetch('/api/auth/me');
+        const dados = await resposta.json();
+        autenticado = Boolean(dados.autenticado);
+        usuarioAtual = dados.usuario || null;
+      } catch (erro) {
+        autenticado = false;
+        usuarioAtual = null;
+      }
+    }
+
+    function aplicarEstadoAutenticacao() {
+      if (!autenticado || !usuarioAtual) {
+        usuarioInfo.textContent = 'Nao autenticado';
+        btnLoginGoogle.classList.remove('hidden');
+        btnLogout.classList.add('hidden');
+        btnUsuarios.classList.add('hidden');
+        return;
+      }
+
+      usuarioInfo.textContent = `${usuarioAtual.nome} (${usuarioAtual.perfilNome})`;
+      btnLoginGoogle.classList.add('hidden');
+      btnLogout.classList.remove('hidden');
+      btnUsuarios.classList.remove('hidden');
+    }
+
     form.addEventListener('submit', async function (event) {
       event.preventDefault();
       limparMensagem();
+
+      if (!autenticado) {
+        exibirMensagem('Entre com sua conta Google IFMS para salvar processos.', 'info');
+        return;
+      }
 
       const dados = {
         status: document.getElementById('status').value,
@@ -714,9 +774,7 @@
       try {
         const resposta = await fetch(url, {
           method: metodo,
-          headers: {
-            'Content-Type': 'application/json'
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(dados)
         });
 
@@ -731,7 +789,7 @@
         resetarFormulario();
         await carregarProcessos();
       } catch (erro) {
-        exibirMensagem('Erro de comunicação com o servidor.', 'erro');
+        exibirMensagem('Erro de comunicacao com o servidor.', 'erro');
       }
     });
 
@@ -739,7 +797,24 @@
     busca.addEventListener('input', aplicarFiltros);
     filtroStatus.addEventListener('change', aplicarFiltros);
 
-    carregarProcessos();
+    btnLogout.addEventListener('click', async () => {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      autenticado = false;
+      usuarioAtual = null;
+      aplicarEstadoAutenticacao();
+      listaProcessos = [];
+      atualizarResumo([]);
+      renderTabela([]);
+      exibirMensagem('Sessao encerrada com sucesso.', 'sucesso');
+    });
+
+    (async () => {
+      await carregarSessao();
+      aplicarEstadoAutenticacao();
+      await carregarProcessos();
+    })();
+
+    window.editarProcesso = editarProcesso;
   </script>
 </body>
 </html>

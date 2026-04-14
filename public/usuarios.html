@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cadastro de Usuarios · Processos PRODI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --if-verde: #32a041;
+      --if-vermelho: #c8191e;
+      --bg: #f4f6f8;
+      --card: #ffffff;
+      --border: #d9e2dc;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --header: #0f172a;
+      --header-soft: #1e293b;
+      --success-bg: #ecfdf3;
+      --success-border: #86efac;
+      --success-text: #166534;
+      --error-bg: #fef2f2;
+      --error-border: #fca5a5;
+      --error-text: #991b1b;
+      --warn-bg: #fffbeb;
+      --warn-border: #fcd34d;
+      --warn-text: #92400e;
+      --shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Open Sans', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .topbar {
+      height: 6px;
+      background: linear-gradient(90deg, var(--if-verde) 0 82%, var(--if-vermelho) 82% 100%);
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--header) 0%, var(--header-soft) 100%);
+      color: #fff;
+      padding: 24px 20px;
+      border-bottom: 4px solid var(--if-verde);
+    }
+
+    .header-content {
+      max-width: 1080px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .brand-text h1 {
+      margin: 0;
+      font-size: 1.8rem;
+      line-height: 1.1;
+      font-weight: 700;
+    }
+
+    .brand-text p {
+      margin: 6px 0 0;
+      color: #d1d5db;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #fff;
+      padding: 10px 12px;
+      border-radius: 999px;
+      font-size: 0.85rem;
+      text-decoration: none;
+      min-height: 40px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .badge.action { background: rgba(50, 160, 65, 0.24); }
+    .badge.button { cursor: pointer; border: none; }
+
+    main {
+      max-width: 1080px;
+      margin: 24px auto;
+      padding: 0 16px 24px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .card h2 {
+      margin: 0 0 6px;
+      font-size: 1.15rem;
+    }
+
+    .card p { margin: 0; color: var(--muted); }
+
+    .msg {
+      margin-bottom: 16px;
+      padding: 12px 14px;
+      border-radius: 10px;
+      display: none;
+      font-size: 0.92rem;
+      font-weight: 600;
+    }
+
+    .msg.success { display: block; background: var(--success-bg); color: var(--success-text); border: 1px solid var(--success-border); }
+    .msg.error { display: block; background: var(--error-bg); color: var(--error-text); border: 1px solid var(--error-border); }
+    .msg.warn { display: block; background: var(--warn-bg); color: var(--warn-text); border: 1px solid var(--warn-border); }
+
+    .form-grid {
+      margin-top: 14px;
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 12px;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field.col-4 { grid-column: span 4; }
+    .field.col-12 { grid-column: span 12; }
+
+    label { font-size: 0.9rem; font-weight: 700; }
+
+    input, select {
+      width: 100%;
+      border: 1px solid #cbd5e1;
+      background: #fff;
+      border-radius: 10px;
+      padding: 11px;
+      font-size: 16px;
+      color: var(--text);
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--if-verde);
+      box-shadow: 0 0 0 3px rgba(50, 160, 65, 0.12);
+    }
+
+    .actions {
+      margin-top: 14px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      min-height: 42px;
+    }
+
+    .btn-primary { background: var(--if-verde); color: #fff; }
+    .btn-secondary { background: #e5e7eb; color: #111827; }
+
+    .table-wrap {
+      margin-top: 14px;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 780px;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 12px;
+      border-bottom: 1px solid #edf2f7;
+      font-size: 0.92rem;
+      vertical-align: top;
+    }
+
+    th { background: #f8fafc; font-weight: 700; }
+
+    .status-tag {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .status-tag.ativo { background: #ecfdf3; color: #166534; }
+    .status-tag.inativo { background: #fef2f2; color: #991b1b; }
+
+    .perfil-chip {
+      display: inline-block;
+      background: #eff6ff;
+      color: #1d4ed8;
+      border-radius: 8px;
+      padding: 4px 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .empty { text-align: center; color: var(--muted); font-style: italic; }
+    .hidden { display: none !important; }
+
+    .access-block {
+      text-align: center;
+      padding: 28px;
+    }
+
+    @media (max-width: 840px) {
+      .field.col-4,
+      .field.col-12 { grid-column: span 12; }
+      .actions { flex-direction: column; }
+      button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar"></div>
+
+  <header>
+    <div class="header-content">
+      <div class="brand-text">
+        <h1>Cadastro de Usuarios</h1>
+        <p>Gestao de perfis e acessos da plataforma Processos PRODI</p>
+      </div>
+      <div class="toolbar">
+        <span class="badge" id="usuarioInfo">Nao autenticado</span>
+        <a class="badge action" href="/">Voltar para processos</a>
+        <a class="badge action" id="btnLoginGoogle" href="/auth/google">Entrar com Google</a>
+        <button class="badge button hidden" id="btnLogout" type="button">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div id="mensagem" class="msg"></div>
+
+    <section class="card" id="blocoSemAcesso">
+      <div class="access-block">
+        <h2>Acesso restrito</h2>
+        <p>Entre com sua conta Google IFMS e use o perfil Administrador Master para gerenciar usuarios.</p>
+      </div>
+    </section>
+
+    <section id="conteudoUsuarios" class="hidden">
+      <div class="card">
+        <h2>Novo usuario</h2>
+        <p>Perfis sugeridos para o projeto: Administrador Master, Gestor PRODI, Analista de Processos e Apoio Administrativo.</p>
+
+        <form id="formUsuario">
+          <div class="form-grid">
+            <div class="field col-4">
+              <label for="nome">Nome completo</label>
+              <input id="nome" name="nome" required />
+            </div>
+
+            <div class="field col-4">
+              <label for="email">E-mail institucional</label>
+              <input id="email" name="email" type="email" placeholder="nome@ifms.edu.br" required />
+            </div>
+
+            <div class="field col-4">
+              <label for="perfil">Perfil</label>
+              <select id="perfil" name="perfil" required></select>
+            </div>
+          </div>
+
+          <div class="actions">
+            <button class="btn-primary" type="submit">Cadastrar usuario</button>
+            <button class="btn-secondary" type="reset">Limpar formulario</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2>Usuarios cadastrados</h2>
+        <p>O usuario master <strong>fernando.alves@ifms.edu.br</strong> e fixo e nao pode ser desativado.</p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Perfil</th>
+                <th>Status</th>
+                <th>Origem</th>
+                <th>Acoes</th>
+              </tr>
+            </thead>
+            <tbody id="tabelaUsuarios">
+              <tr><td colspan="6" class="empty">Carregando usuarios...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const mensagem = document.getElementById('mensagem');
+    const usuarioInfo = document.getElementById('usuarioInfo');
+    const btnLoginGoogle = document.getElementById('btnLoginGoogle');
+    const btnLogout = document.getElementById('btnLogout');
+
+    const blocoSemAcesso = document.getElementById('blocoSemAcesso');
+    const conteudoUsuarios = document.getElementById('conteudoUsuarios');
+
+    const formUsuario = document.getElementById('formUsuario');
+    const perfilSelect = document.getElementById('perfil');
+    const tabelaUsuarios = document.getElementById('tabelaUsuarios');
+
+    const MASTER_EMAIL = 'fernando.alves@ifms.edu.br';
+
+    let usuarioAtual = null;
+    let perfis = [];
+    let usuarios = [];
+
+    function showMessage(texto, tipo) {
+      mensagem.textContent = texto;
+      mensagem.className = `msg ${tipo}`;
+    }
+
+    function clearMessage() {
+      mensagem.textContent = '';
+      mensagem.className = 'msg';
+    }
+
+    async function carregarSessao() {
+      const resposta = await fetch('/api/auth/me');
+      const dados = await resposta.json();
+      return dados;
+    }
+
+    function aplicarSessao(dados) {
+      if (!dados.autenticado || !dados.usuario) {
+        usuarioAtual = null;
+        usuarioInfo.textContent = 'Nao autenticado';
+        btnLoginGoogle.classList.remove('hidden');
+        btnLogout.classList.add('hidden');
+        blocoSemAcesso.classList.remove('hidden');
+        conteudoUsuarios.classList.add('hidden');
+        return;
+      }
+
+      usuarioAtual = dados.usuario;
+      usuarioInfo.textContent = `${usuarioAtual.nome} (${usuarioAtual.perfilNome})`;
+      btnLoginGoogle.classList.add('hidden');
+      btnLogout.classList.remove('hidden');
+
+      if (usuarioAtual.perfil !== 'ADMIN_MASTER') {
+        blocoSemAcesso.classList.remove('hidden');
+        conteudoUsuarios.classList.add('hidden');
+        showMessage('Somente o Administrador Master pode cadastrar e alterar usuarios.', 'warn');
+        return;
+      }
+
+      blocoSemAcesso.classList.add('hidden');
+      conteudoUsuarios.classList.remove('hidden');
+    }
+
+    async function carregarPerfis() {
+      const resposta = await fetch('/api/perfis');
+      const dados = await resposta.json();
+      if (!resposta.ok) throw new Error(dados.erro || 'Falha ao carregar perfis.');
+      perfis = dados;
+
+      perfilSelect.innerHTML = perfis.map((perfil) => (
+        `<option value="${perfil.id}">${perfil.nome}</option>`
+      )).join('');
+    }
+
+    function renderTabelaUsuarios() {
+      if (!usuarios.length) {
+        tabelaUsuarios.innerHTML = '<tr><td colspan="6" class="empty">Nenhum usuario cadastrado.</td></tr>';
+        return;
+      }
+
+      tabelaUsuarios.innerHTML = usuarios.map((usuario) => {
+        const optionsPerfis = perfis.map((perfil) => (
+          `<option value="${perfil.id}" ${perfil.id === usuario.perfil ? 'selected' : ''}>${perfil.nome}</option>`
+        )).join('');
+
+        const isMaster = usuario.email === MASTER_EMAIL;
+
+        return `
+          <tr>
+            <td>${usuario.nome}</td>
+            <td>${usuario.email}</td>
+            <td>
+              <select onchange="alterarPerfil(${usuario.id}, this.value)" ${isMaster ? 'disabled' : ''}>
+                ${optionsPerfis}
+              </select>
+            </td>
+            <td>
+              <span class="status-tag ${usuario.ativo ? 'ativo' : 'inativo'}">${usuario.ativo ? 'Ativo' : 'Inativo'}</span>
+            </td>
+            <td><span class="perfil-chip">${usuario.origem}</span></td>
+            <td>
+              ${
+                isMaster
+                  ? '<span class="perfil-chip">Conta protegida</span>'
+                  : `<button class="btn-secondary" type="button" onclick="alternarStatus(${usuario.id})">${usuario.ativo ? 'Desativar' : 'Ativar'}</button>`
+              }
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function carregarUsuarios() {
+      const resposta = await fetch('/api/usuarios');
+      const dados = await resposta.json();
+      if (!resposta.ok) throw new Error(dados.erro || 'Falha ao carregar usuarios.');
+      usuarios = dados;
+      renderTabelaUsuarios();
+    }
+
+    async function alterarPerfil(id, perfil) {
+      try {
+        clearMessage();
+        const alvo = usuarios.find((item) => item.id === id);
+        if (!alvo) return;
+
+        const resposta = await fetch(`/api/usuarios/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nome: alvo.nome, perfil, ativo: alvo.ativo })
+        });
+
+        const dados = await resposta.json();
+
+        if (!resposta.ok) throw new Error(dados.erro || 'Falha ao atualizar perfil.');
+
+        showMessage('Perfil atualizado com sucesso.', 'success');
+        await carregarUsuarios();
+      } catch (erro) {
+        showMessage(erro.message, 'error');
+      }
+    }
+
+    async function alternarStatus(id) {
+      try {
+        clearMessage();
+        const alvo = usuarios.find((item) => item.id === id);
+        if (!alvo) return;
+
+        const resposta = await fetch(`/api/usuarios/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ nome: alvo.nome, perfil: alvo.perfil, ativo: !alvo.ativo })
+        });
+
+        const dados = await resposta.json();
+        if (!resposta.ok) throw new Error(dados.erro || 'Falha ao atualizar status.');
+
+        showMessage('Status atualizado com sucesso.', 'success');
+        await carregarUsuarios();
+      } catch (erro) {
+        showMessage(erro.message, 'error');
+      }
+    }
+
+    formUsuario.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      clearMessage();
+
+      const payload = {
+        nome: document.getElementById('nome').value,
+        email: document.getElementById('email').value,
+        perfil: document.getElementById('perfil').value
+      };
+
+      try {
+        const resposta = await fetch('/api/usuarios', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const dados = await resposta.json();
+
+        if (!resposta.ok) throw new Error(dados.erro || 'Falha ao cadastrar usuario.');
+
+        formUsuario.reset();
+        showMessage('Usuario cadastrado com sucesso.', 'success');
+        await carregarUsuarios();
+      } catch (erro) {
+        showMessage(erro.message, 'error');
+      }
+    });
+
+    btnLogout.addEventListener('click', async () => {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      location.reload();
+    });
+
+    (async () => {
+      try {
+        const sessao = await carregarSessao();
+        aplicarSessao(sessao);
+
+        if (!sessao.autenticado || sessao.usuario?.perfil !== 'ADMIN_MASTER') {
+          return;
+        }
+
+        await carregarPerfis();
+        await carregarUsuarios();
+      } catch (erro) {
+        showMessage('Erro ao carregar tela de usuarios.', 'error');
+      }
+    })();
+
+    window.alterarPerfil = alterarPerfil;
+    window.alternarStatus = alternarStatus;
+  </script>
+</body>
+</html>
