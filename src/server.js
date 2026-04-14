@@ -384,7 +384,7 @@ app.get('/auth/google/callback', async (req, res) => {
     const sessionId = await criarSessao(usuario.id);
     definirCookieSessao(res, sessionId);
 
-    return res.redirect('/usuarios');
+    return res.redirect('/dashboard');
   } catch (error) {
     console.error('Erro no callback Google:', error.message);
     return res.status(500).send('Nao foi possivel concluir a autenticacao Google.');
@@ -1346,6 +1346,14 @@ app.get('/usuarios', exigirAutenticacao, (req, res) => {
 
 app.get('/setores', exigirAutenticacao, (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'setores.html'));
+});
+
+app.get('/processos', exigirAutenticacao, (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'processos.html'));
+});
+
+app.get('/dashboard', exigirAutenticacao, (req, res) => {
+  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
 (async () => {

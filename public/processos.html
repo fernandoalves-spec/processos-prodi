@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Processos PRODI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --if-verde:#32a041;--if-vermelho:#c8191e;--bg:#f4f6f8;--card:#fff;--border:#d9e2dc;--text:#1f2937;--muted:#6b7280;--header:#0f172a;--header-soft:#1e293b;--ok:#166534;--ok-bg:#ecfdf3;--ok-bd:#86efac;--er:#991b1b;--er-bg:#fef2f2;--er-bd:#fca5a5;--in:#1e40af;--in-bg:#eff6ff;--in-bd:#93c5fd;--shadow:0 8px 24px rgba(15,23,42,.08);--radius:14px; }
+    *{box-sizing:border-box} html,body{margin:0;padding:0;font-family:'Open Sans',Arial,sans-serif;background:var(--bg);color:var(--text)}
+    .topbar{height:6px;background:linear-gradient(90deg,var(--if-verde) 0 82%,var(--if-vermelho) 82% 100%)}
+    header{background:linear-gradient(135deg,var(--header) 0%,var(--header-soft) 100%);color:#fff;padding:24px 20px;border-bottom:4px solid var(--if-verde)}
+    .header-content{max-width:1280px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+    .brand h1{margin:0;font-size:2rem}.brand p{margin:6px 0 0;color:#d1d5db}
+    .header-actions{display:flex;gap:8px;flex-wrap:wrap}
+    .badge{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.14);color:#fff;padding:10px 14px;border-radius:999px;font-size:.86rem;font-weight:600;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;min-height:40px}
+    .badge.action{background:rgba(50,160,65,.24)} .badge.secondary{background:rgba(255,255,255,.14);cursor:pointer;border:none}
+    main{max-width:1280px;margin:24px auto;padding:0 16px 32px}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;margin-bottom:18px}
+    .card h2{margin:0;font-size:1.1rem}.sub{margin:4px 0 0;color:var(--muted);font-size:.9rem}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:10px}.col-2{grid-column:span 2}.col-3{grid-column:span 3}.col-4{grid-column:span 4}.col-6{grid-column:span 6}.col-12{grid-column:span 12}
+    label{font-size:.84rem;font-weight:700;color:#334155}
+    input,select,textarea{width:100%;border:1px solid #cbd5e1;background:#fff;border-radius:10px;padding:10px;font-size:14px;color:var(--text)}
+    textarea{resize:vertical;min-height:86px}
+    input:focus,select:focus,textarea:focus{outline:none;border-color:var(--if-verde);box-shadow:0 0 0 3px rgba(50,160,65,.12)}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+    button{border:none;border-radius:10px;padding:10px 14px;font-size:.9rem;font-weight:700;cursor:pointer;min-height:40px}
+    .btn-primary{background:var(--if-verde);color:#fff}.btn-secondary{background:#e5e7eb;color:#111827}.btn-warning{background:#1d4ed8;color:#fff}
+    .msg{margin-bottom:12px;padding:10px 12px;border-radius:10px;display:none;font-size:.9rem;font-weight:600}
+    .msg.sucesso{display:block;background:var(--ok-bg);color:var(--ok);border:1px solid var(--ok-bd)}
+    .msg.erro{display:block;background:var(--er-bg);color:var(--er);border:1px solid var(--er-bd)}
+    .msg.info{display:block;background:var(--in-bg);color:var(--in);border:1px solid var(--in-bd)}
+    .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:10px;background:#fff}
+    table{width:100%;border-collapse:collapse;min-width:820px} th,td{padding:10px;border-bottom:1px solid #edf2f7;font-size:.86rem;text-align:left} thead th{background:#f8fafc;color:#334155;font-weight:700;white-space:nowrap}
+    .empty{text-align:center;color:var(--muted);font-style:italic;padding:18px !important}
+    .tag{display:inline-block;padding:5px 9px;border-radius:999px;font-size:.77rem;font-weight:700}
+    .tag.recebido{background:#ecfdf3;color:#166534}.tag.analise{background:#eff6ff;color:#1d4ed8}.tag.encaminhado{background:#fff7ed;color:#c2410c}.tag.finalizado{background:#f3f4f6;color:#374151}
+    .hidden{display:none !important}
+    @media (max-width:980px){.col-2,.col-3,.col-4,.col-6{grid-column:span 6}}
+    @media (max-width:720px){.brand h1{font-size:1.45rem}.col-2,.col-3,.col-4,.col-6,.col-12{grid-column:span 12}.actions{flex-direction:column}button{width:100%}.badge{width:100%}.header-actions{width:100%}}
+  </style>
+</head>
+<body>
+  <div class="topbar"></div>
+  <header>
+    <div class="header-content">
+      <div class="brand">
+        <h1>Cadastro de Processos</h1>
+        <p>Registro, consulta e atualizacao operacional de processos</p>
+      </div>
+      <div class="header-actions">
+        <span class="badge" id="usuarioInfo">Nao autenticado</span>
+        <a class="badge action" href="/dashboard">Dashboard</a>
+        <a class="badge action" href="/setores">Setores</a>
+        <a class="badge action" href="/usuarios">Usuarios</a>
+        <button class="badge secondary hidden" id="btnLogout" type="button">Sair</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Novo processo</h2>
+      <p class="sub">Preencha os campos para cadastrar ou editar um processo.</p>
+      <div id="mensagemProcesso" class="msg"></div>
+      <form id="processoForm">
+        <input type="hidden" id="processoId">
+        <div class="grid">
+          <div class="col-2"><label for="status">Status</label><select id="status"><option>Recebido</option><option>Encaminhados Externamente</option><option>Encaminhado Internamente</option><option>Finalizado</option><option>Em analise</option></select></div>
+          <div class="col-2"><label for="precisaResposta">Precisa resposta?</label><select id="precisaResposta"><option>Sim</option><option>Nao</option></select></div>
+          <div class="col-2"><label for="dataRecebimento">Data recebimento</label><input type="date" id="dataRecebimento"></div>
+          <div class="col-2"><label for="prazoDiasUteis">Prazo (dias)</label><input type="number" id="prazoDiasUteis" min="0"></div>
+          <div class="col-4"><label for="protocolo">Protocolo</label><input id="protocolo" required></div>
+          <div class="col-4"><label for="origem">Origem</label><select id="origem"></select></div>
+          <div class="col-4"><label for="destino">Destino</label><select id="destino"></select></div>
+          <div class="col-4"><label for="link">Link</label><input type="url" id="link" placeholder="https://..."></div>
+          <div class="col-8"><label for="assunto">Assunto</label><input id="assunto" required></div>
+          <div class="col-12"><label for="observacao">Observacao</label><textarea id="observacao"></textarea></div>
+        </div>
+        <div class="actions"><button class="btn-primary" id="btnSalvar" type="submit">Salvar processo</button><button class="btn-secondary" id="btnCancelarEdicao" type="button" style="display:none;">Cancelar edicao</button><button class="btn-secondary" type="reset">Limpar</button></div>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Processos cadastrados</h2>
+      <div class="grid" style="margin-bottom:10px;">
+        <div class="col-6"><input id="busca" placeholder="Pesquisar por protocolo, assunto, origem ou destino"></div>
+        <div class="col-3"><select id="filtroStatus"><option value="">Filtrar por status</option><option value="Recebido">Recebido</option><option value="Encaminhados Externamente">Encaminhados Externamente</option><option value="Encaminhado Internamente">Encaminhado Internamente</option><option value="Finalizado">Finalizado</option><option value="Em analise">Em analise</option></select></div>
+      </div>
+      <div class="table-wrap"><table><thead><tr><th>Status</th><th>Protocolo</th><th>Assunto</th><th>Origem</th><th>Destino</th><th>Prazo</th><th>Resposta?</th><th>Acoes</th></tr></thead><tbody id="tabelaProcessos"><tr><td colspan="8" class="empty">Carregando processos...</td></tr></tbody></table></div>
+    </section>
+  </main>
+
+  <script>
+    const usuarioInfo = document.getElementById('usuarioInfo');
+    const btnLogout = document.getElementById('btnLogout');
+    const msgProcesso = document.getElementById('mensagemProcesso');
+    const form = document.getElementById('processoForm');
+    const processoId = document.getElementById('processoId');
+    const btnSalvar = document.getElementById('btnSalvar');
+    const btnCancelarEdicao = document.getElementById('btnCancelarEdicao');
+    const busca = document.getElementById('busca');
+    const filtroStatus = document.getElementById('filtroStatus');
+    const tabelaProcessos = document.getElementById('tabelaProcessos');
+    const selectOrigem = document.getElementById('origem');
+    const selectDestino = document.getElementById('destino');
+
+    let listaProcessos = [];
+    let listaSetores = [];
+    let usuarioAtual = null;
+
+    function msg(el, texto, tipo) { el.textContent = texto; el.className = `msg ${tipo}`; }
+    function clear(el) { el.textContent = ''; el.className = 'msg'; }
+    function tagStatus(s) { const v = String(s || '').toLowerCase(); if (v.includes('recebido')) return 'tag recebido'; if (v.includes('analise')) return 'tag analise'; if (v.includes('encaminhado')) return 'tag encaminhado'; if (v.includes('finalizado')) return 'tag finalizado'; return 'tag'; }
+    function fillSetor(sel, selected = '') { sel.innerHTML = ['<option value="">Selecione um setor</option>'].concat(listaSetores.map((s) => { const v = `${s.sigla} - ${s.nome}`; return `<option value="${v}" ${v===selected?'selected':''}>${v}</option>`; })).join(''); }
+
+    function renderProcessos(rows) {
+      if (!rows.length) { tabelaProcessos.innerHTML = '<tr><td colspan="8" class="empty">Nenhum processo cadastrado.</td></tr>'; return; }
+      tabelaProcessos.innerHTML = rows.map((p) => `<tr><td><span class="${tagStatus(p.status)}">${p.status || ''}</span></td><td>${p.link ? `<a href="${p.link}" target="_blank" rel="noopener noreferrer">${p.protocolo || ''}</a>` : (p.protocolo || '')}</td><td>${p.assunto || ''}</td><td>${p.origem || ''}</td><td>${p.destino || ''}</td><td>${p.prazoDiasUteis || ''}</td><td>${p.precisaResposta || ''}</td><td><button class="btn-warning" type="button" onclick="editarProcesso(${p.id})">Editar</button></td></tr>`).join('');
+    }
+
+    function filtroProcessos() {
+      const termo = busca.value.trim().toLowerCase();
+      const status = filtroStatus.value;
+      const out = listaProcessos.filter((p) => {
+        const txt = [p.protocolo, p.assunto, p.origem, p.destino].some((v) => String(v || '').toLowerCase().includes(termo));
+        return txt && (!status || p.status === status);
+      });
+      renderProcessos(out);
+    }
+
+    function resetForm() { form.reset(); processoId.value = ''; fillSetor(selectOrigem); fillSetor(selectDestino); btnSalvar.textContent = 'Salvar processo'; btnCancelarEdicao.style.display = 'none'; }
+
+    function preencherForm(p) {
+      processoId.value = p.id;
+      document.getElementById('status').value = p.status || 'Recebido';
+      document.getElementById('precisaResposta').value = p.precisaResposta || 'Nao';
+      document.getElementById('dataRecebimento').value = p.dataRecebimento || '';
+      document.getElementById('protocolo').value = p.protocolo || '';
+      document.getElementById('link').value = p.link || '';
+      fillSetor(selectOrigem, p.origem || '');
+      fillSetor(selectDestino, p.destino || '');
+      document.getElementById('prazoDiasUteis').value = p.prazoDiasUteis || '';
+      document.getElementById('assunto').value = p.assunto || '';
+      document.getElementById('observacao').value = p.observacao || '';
+      btnSalvar.textContent = 'Atualizar processo';
+      btnCancelarEdicao.style.display = 'inline-block';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    async function loadSessao() {
+      const resp = await fetch('/api/auth/me');
+      const data = await resp.json();
+      if (!data.autenticado || !data.usuario) { location.href = '/'; return; }
+      usuarioAtual = data.usuario;
+      usuarioInfo.textContent = `${usuarioAtual.nome} (${usuarioAtual.perfilNome})`;
+      btnLogout.classList.remove('hidden');
+    }
+
+    async function loadSetores() {
+      try {
+        const resp = await fetch('/api/setores');
+        const data = await resp.json();
+        listaSetores = resp.ok ? data : [];
+      } catch { listaSetores = []; }
+      fillSetor(selectOrigem);
+      fillSetor(selectDestino);
+    }
+
+    async function loadProcessos() {
+      try {
+        const resp = await fetch('/api/processos');
+        const data = await resp.json();
+        if (!resp.ok) { msg(msgProcesso, data.erro || 'Erro ao carregar processos.', 'erro'); return; }
+        listaProcessos = data;
+        filtroProcessos();
+      } catch { msg(msgProcesso, 'Falha ao carregar processos.', 'erro'); }
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      clear(msgProcesso);
+      const payload = {
+        status: document.getElementById('status').value,
+        precisaResposta: document.getElementById('precisaResposta').value,
+        dataRecebimento: document.getElementById('dataRecebimento').value,
+        protocolo: document.getElementById('protocolo').value,
+        link: document.getElementById('link').value,
+        origem: selectOrigem.value,
+        destino: selectDestino.value,
+        prazoDiasUteis: document.getElementById('prazoDiasUteis').value,
+        assunto: document.getElementById('assunto').value,
+        observacao: document.getElementById('observacao').value
+      };
+      const id = processoId.value;
+      const url = id ? `/api/processos/${id}` : '/api/processos';
+      const method = id ? 'PUT' : 'POST';
+      try {
+        const resp = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const data = await resp.json();
+        if (!resp.ok) { msg(msgProcesso, data.erro || 'Erro ao salvar processo.', 'erro'); return; }
+        msg(msgProcesso, id ? 'Processo atualizado com sucesso.' : 'Processo cadastrado com sucesso.', 'sucesso');
+        resetForm();
+        await loadProcessos();
+      } catch { msg(msgProcesso, 'Falha de comunicacao com servidor.', 'erro'); }
+    });
+
+    btnCancelarEdicao.addEventListener('click', resetForm);
+    busca.addEventListener('input', filtroProcessos);
+    filtroStatus.addEventListener('change', filtroProcessos);
+    btnLogout.addEventListener('click', async () => { await fetch('/api/auth/logout', { method: 'POST' }); location.href = '/'; });
+
+    function editarProcesso(id) { const p = listaProcessos.find((x) => x.id === id); if (p) preencherForm(p); }
+    window.editarProcesso = editarProcesso;
+
+    (async () => { await loadSessao(); await loadSetores(); await loadProcessos(); })();
+  </script>
+</body>
+</html>
