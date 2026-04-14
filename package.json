@@ -1,0 +1,25 @@
+{
+  "name": "processos-prodi",
+  "version": "1.0.0",
+  "description": "Sistema web para registro, acompanhamento e controle de processos da Pró-Reitoria de Desenvolvimento Institucional do IFMS.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+  },
+  "keywords": [
+    "processos",
+    "prodi",
+    "ifms",
+    "railway",
+    "express"
+  ],
+  "author": "Fernando Alves",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
