@@ -21,7 +21,7 @@ const oauthEstados = new Map();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, '..', 'public')));
+app.use(express.static(path.join(__dirname, '..', 'public'), { index: false }));
 
 function normalizarEmail(email) {
   return String(email || '').trim().toLowerCase();
@@ -1371,7 +1371,11 @@ app.get('/processos', exigirAutenticacao, (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'processos.html'));
 });
 
-app.get('/dashboard', exigirAutenticacao, (req, res) => {
+app.get('/', (req, res) => {
+  return res.redirect('/dashboard');
+});
+
+app.get('/dashboard', (req, res) => {
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
