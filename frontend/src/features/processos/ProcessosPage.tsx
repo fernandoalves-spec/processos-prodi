@@ -6,6 +6,9 @@ interface ProcessosPageProps {
   enabled: boolean;
 }
 
+type SortField = 'protocolo' | 'assunto' | 'status' | 'tramitacao' | 'atualizacao';
+type SortDirection = 'asc' | 'desc';
+
 function formatarData(value?: string | null) {
   if (!value) return '-';
   const d = new Date(value);
@@ -27,6 +30,10 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
   const [erro, setErro] = useState<string | null>(null);
   const [busca, setBusca] = useState('');
   const [status, setStatus] = useState('');
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const [itensPorPagina, setItensPorPagina] = useState(10);
+  const [sortField, setSortField] = useState<SortField>('atualizacao');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [processoSelecionadoId, setProcessoSelecionadoId] = useState<number | null>(null);
 
   useEffect(() => {
@@ -49,6 +56,85 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
 
   const statusDisponiveis = useMemo(() => [...new Set(processos.map((p) => p.status))], [processos]);
 
+  const processosFiltradosOrdenados = useMemo(() => {
+    const filtrados = processos.filter((item) => {
+      const termo = busca.trim().toLowerCase();
+      if (termo) {
+        const alvo = `${item.protocolo} ${item.assunto} ${item.origem || ''} ${item.destino || ''}`.toLowerCase();
+        if (!alvo.includes(termo)) return false;
+      }
+      if (status && item.status !== status) return false;
+      return true;
+    });
+
+    const sorted = [...filtrados].sort((a, b) => {
+      const valueA = (() => {
+        if (sortField === 'protocolo') return String(a.protocolo || '').toLowerCase();
+        if (sortField === 'assunto') return String(a.assunto || '').toLowerCase();
+        if (sortField === 'status') return String(a.status || '').toLowerCase();
+        if (sortField === 'tramitacao') return `${a.origem || ''}->${a.destino || ''}`.toLowerCase();
+        return new Date(a.atualizadoEm || a.criadoEm || 0).getTime();
+      })();
+
+      const valueB = (() => {
+        if (sortField === 'protocolo') return String(b.protocolo || '').toLowerCase();
+        if (sortField === 'assunto') return String(b.assunto || '').toLowerCase();
+        if (sortField === 'status') return String(b.status || '').toLowerCase();
+        if (sortField === 'tramitacao') return `${b.origem || ''}->${b.destino || ''}`.toLowerCase();
+        return new Date(b.atualizadoEm || b.criadoEm || 0).getTime();
+      })();
+
+      if (valueA < valueB) return sortDirection === 'asc' ? -1 : 1;
+      if (valueA > valueB) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    return sorted;
+  }, [processos, busca, status, sortField, sortDirection]);
+
+  const totalPaginas = Math.max(1, Math.ceil(processosFiltradosOrdenados.length / itensPorPagina));
+  const paginaCorrigida = Math.min(paginaAtual, totalPaginas);
+
+  const processosPaginados = useMemo(() => {
+    const inicio = (paginaCorrigida - 1) * itensPorPagina;
+    const fim = inicio + itensPorPagina;
+    return processosFiltradosOrdenados.slice(inicio, fim);
+  }, [processosFiltradosOrdenados, paginaCorrigida, itensPorPagina]);
+
+  useEffect(() => {
+    setPaginaAtual(1);
+  }, [busca, status, sortField, sortDirection, itensPorPagina]);
+
+  useEffect(() => {
+    if (paginaAtual > totalPaginas) {
+      setPaginaAtual(totalPaginas);
+    }
+  }, [paginaAtual, totalPaginas]);
+
+  const processoSelecionado = processosFiltradosOrdenados.find((item) => item.id === processoSelecionadoId) || null;
+
+  const alterarOrdenacao = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+      return;
+    }
+    setSortField(field);
+    setSortDirection('asc');
+  };
+
+  const labelOrdenacao = (field: SortField) => {
+    if (sortField !== field) return '↕';
+    return sortDirection === 'asc' ? '↑' : '↓';
+  };
+
+  const irPaginaAnterior = () => {
+    setPaginaAtual((prev) => Math.max(1, prev - 1));
+  };
+
+  const irPaginaSeguinte = () => {
+    setPaginaAtual((prev) => Math.min(totalPaginas, prev + 1));
+  };
+
   const processosFiltrados = useMemo(() => {
     return processos.filter((item) => {
       const termo = busca.trim().toLowerCase();
@@ -60,8 +146,6 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
       return true;
     });
   }, [processos, busca, status]);
-
-  const processoSelecionado = processosFiltrados.find((item) => item.id === processoSelecionadoId) || null;
 
   return (
     <>
@@ -96,6 +180,14 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
                   ))}
                 </select>
               </label>
+              <label>
+                Itens por pagina
+                <select value={itensPorPagina} onChange={(e) => setItensPorPagina(Number(e.target.value))}>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+              </label>
             </div>
 
             {erro ? <div className="error">{erro}</div> : null}
@@ -106,16 +198,36 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
                 <table className="processos-tabela">
                   <thead>
                     <tr>
-                      <th>Protocolo</th>
-                      <th>Assunto</th>
-                      <th>Status</th>
-                      <th>Tramitacao</th>
-                      <th>Atualizacao</th>
+                      <th>
+                        <button className="th-sort" type="button" onClick={() => alterarOrdenacao('protocolo')}>
+                          Protocolo {labelOrdenacao('protocolo')}
+                        </button>
+                      </th>
+                      <th>
+                        <button className="th-sort" type="button" onClick={() => alterarOrdenacao('assunto')}>
+                          Assunto {labelOrdenacao('assunto')}
+                        </button>
+                      </th>
+                      <th>
+                        <button className="th-sort" type="button" onClick={() => alterarOrdenacao('status')}>
+                          Status {labelOrdenacao('status')}
+                        </button>
+                      </th>
+                      <th>
+                        <button className="th-sort" type="button" onClick={() => alterarOrdenacao('tramitacao')}>
+                          Tramitacao {labelOrdenacao('tramitacao')}
+                        </button>
+                      </th>
+                      <th>
+                        <button className="th-sort" type="button" onClick={() => alterarOrdenacao('atualizacao')}>
+                          Atualizacao {labelOrdenacao('atualizacao')}
+                        </button>
+                      </th>
                       <th />
                     </tr>
                   </thead>
                   <tbody>
-                    {processosFiltrados.map((item) => (
+                    {processosPaginados.map((item) => (
                       <tr key={item.id}>
                         <td>{item.protocolo}</td>
                         <td>{item.assunto}</td>
@@ -131,7 +243,7 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
                         </td>
                       </tr>
                     ))}
-                    {!processosFiltrados.length ? (
+                    {!processosPaginados.length ? (
                       <tr>
                         <td colSpan={6} className="muted">
                           Nenhum processo encontrado para os filtros aplicados.
@@ -140,6 +252,19 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
                     ) : null}
                   </tbody>
                 </table>
+              </div>
+              <div className="paginacao">
+                <span>
+                  {processosFiltrados.length} processo(s) · pagina {paginaCorrigida} de {totalPaginas}
+                </span>
+                <div className="paginacao-botoes">
+                  <button className="btn-mini" type="button" onClick={irPaginaAnterior} disabled={paginaCorrigida <= 1}>
+                    Anterior
+                  </button>
+                  <button className="btn-mini" type="button" onClick={irPaginaSeguinte} disabled={paginaCorrigida >= totalPaginas}>
+                    Proxima
+                  </button>
+                </div>
               </div>
 
               <aside className="processo-detalhe panel">

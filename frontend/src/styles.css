@@ -309,7 +309,7 @@ body {
 
 .processos-filtros {
   display: grid;
-  grid-template-columns: 2fr 1fr;
+  grid-template-columns: 2fr 1fr 160px;
   gap: 10px;
   margin-bottom: 12px;
 }
@@ -364,6 +364,20 @@ body {
   font-weight: 700;
 }
 
+.th-sort {
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.th-sort:hover {
+  text-decoration: underline;
+}
+
 .status-pill {
   display: inline-block;
   border-radius: 999px;
@@ -404,6 +418,20 @@ body {
 
 .btn-mini:hover {
   background: #f8fafc;
+}
+
+.paginacao {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.paginacao-botoes {
+  display: flex;
+  gap: 8px;
 }
 
 .processo-detalhe {
