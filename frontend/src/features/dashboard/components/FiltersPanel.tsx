@@ -57,34 +57,12 @@ export function FiltersPanel({ filtros, options, onChange }: FiltersPanelProps) 
           </select>
         </label>
         <label>
-          Tipo de processo
-          <select value={filtros.tipoProcesso || ''} onChange={(e) => update('tipoProcesso', e.target.value)}>
-            <option value="">Todos</option>
-            {options.tipos.map((tipo) => (
-              <option key={tipo} value={tipo}>
-                {tipo}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
           Status
           <select value={filtros.status || ''} onChange={(e) => update('status', e.target.value)}>
             <option value="">Todos</option>
             {options.status.map((status) => (
               <option key={status} value={status}>
                 {status}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label>
-          Responsável
-          <select value={filtros.responsavel || ''} onChange={(e) => update('responsavel', e.target.value)}>
-            <option value="">Todos</option>
-            {options.responsaveis.map((responsavel) => (
-              <option key={responsavel} value={responsavel}>
-                {responsavel}
               </option>
             ))}
           </select>
