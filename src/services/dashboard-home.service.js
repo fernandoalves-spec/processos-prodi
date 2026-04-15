@@ -2,6 +2,13 @@ const pool = require('../db');
 
 const STATUS_CONCLUIDOS = new Set(['concluido', 'finalizado']);
 const STATUS_INATIVOS = new Set(['concluido', 'finalizado', 'cancelado', 'arquivado']);
+const STATUS_OFICIAIS = [
+  'Recebido',
+  'Encaminhados Externamente',
+  'Encaminhado Internamente',
+  'Finalizado',
+  'Em análise'
+];
 const CAMPUS_OFICIAIS = [
   { sigla: 'AB', nome: 'Amambaí' },
   { sigla: 'AQ', nome: 'Aquidauana' },
@@ -60,6 +67,12 @@ function normalizarComparacao(value) {
     .toLowerCase();
 }
 
+function normalizarStatus(value) {
+  const base = normalizarComparacao(value);
+  if (base === 'em analise') return 'em análise';
+  return base;
+}
+
 function getCampusLabel(sigla, nome) {
   return `${sigla} - ${nome}`;
 }
@@ -101,7 +114,7 @@ function dentroDoPeriodo(data, filtros) {
 function aplicaFiltros(rows, filtros) {
   return rows.filter((row) => {
     const status = normalizarTexto(row.status, '');
-    if (filtros.status && status !== filtros.status) return false;
+    if (filtros.status && normalizarStatus(status) !== normalizarStatus(filtros.status)) return false;
     if (filtros.campus && getCampus(row) !== filtros.campus) return false;
     if (filtros.setor && getSetor(row) !== filtros.setor) return false;
     if (filtros.tipoProcesso && getTipo(row) !== filtros.tipoProcesso) return false;
@@ -114,12 +127,12 @@ function aplicaFiltros(rows, filtros) {
 }
 
 function calculaStatus(row, now) {
-  const statusRaw = normalizarTexto(row.status, '').toLowerCase();
+  const statusRaw = normalizarComparacao(normalizarTexto(row.status, ''));
   const abertura = getAbertura(row);
   const slaDias = getSlaDias(row);
 
-  if (STATUS_CONCLUIDOS.has(statusRaw)) return 'Concluido';
-  if (statusRaw.includes('analise')) return 'Em analise';
+  if (STATUS_CONCLUIDOS.has(statusRaw)) return 'Finalizado';
+  if (statusRaw.includes('analise')) return 'Em análise';
 
   if (abertura && slaDias !== null) {
     const limite = new Date(abertura);
@@ -309,7 +322,7 @@ async function obterDashboardHomeOptions() {
     campus: CAMPUS_OFICIAIS.map((campus) => getCampusLabel(campus.sigla, campus.nome)),
     setores: uniq(rows.map(getSetor)),
     tipos: uniq(rows.map(getTipo)),
-    status: uniq(rows.map((row) => normalizarTexto(row.status))),
+    status: STATUS_OFICIAIS,
     responsaveis: uniq(rows.map(getResponsavel))
   };
 }
