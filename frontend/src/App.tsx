@@ -49,7 +49,7 @@ export function App() {
 
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/dashboard" element={<DashboardPage enabled={autenticado} />} />
         <Route
           path="/processos"
           element={<PlaceholderPage titulo="Gestão de Processos" descricao="Área para lista detalhada e tramitação por processo." />}

@@ -32,16 +32,34 @@ class MockDataProvider implements DashboardDataProvider {
 }
 
 class ApiDataProvider implements DashboardDataProvider {
-  async getDashboardSnapshot(): Promise<DashboardSnapshot> {
-    throw new Error('ApiDataProvider ainda nao implementado para a V1.');
+  async getDashboardSnapshot(filters: DashboardFilters): Promise<DashboardSnapshot> {
+    const params = new URLSearchParams();
+    if (filters.dataInicio) params.set('dataInicio', filters.dataInicio);
+    if (filters.dataFim) params.set('dataFim', filters.dataFim);
+    if (filters.campus) params.set('campus', filters.campus);
+    if (filters.setor) params.set('setor', filters.setor);
+    if (filters.tipoProcesso) params.set('tipoProcesso', filters.tipoProcesso);
+    if (filters.status) params.set('status', filters.status);
+    if (filters.responsavel) params.set('responsavel', filters.responsavel);
+
+    const url = params.toString() ? `/api/dashboard/home?${params.toString()}` : '/api/dashboard/home';
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error('Falha ao carregar snapshot do dashboard.');
+    }
+    return response.json();
   }
 
   async getFilterOptions() {
-    throw new Error('ApiDataProvider ainda nao implementado para a V1.');
+    const response = await fetch('/api/dashboard/home/options');
+    if (!response.ok) {
+      throw new Error('Falha ao carregar opcoes de filtro.');
+    }
+    return response.json();
   }
 }
 
-export function createDashboardProvider(mode: 'mock' | 'api' = 'mock'): DashboardDataProvider {
+export function createDashboardProvider(mode: 'mock' | 'api' = 'api'): DashboardDataProvider {
   if (mode === 'api') return new ApiDataProvider();
   return new MockDataProvider();
 }

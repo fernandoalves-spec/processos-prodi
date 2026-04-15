@@ -10,7 +10,7 @@ import { PriorityTaskList } from './components/PriorityTaskList';
 import { createDashboardProvider } from '../../services/dashboardProvider';
 import { DashboardFilters, DashboardSnapshot } from '../../types/dashboard';
 
-const provider = createDashboardProvider('mock');
+const provider = createDashboardProvider('api');
 
 const snapshotVazio: DashboardSnapshot = {
   filtrosAplicados: {},
@@ -23,10 +23,14 @@ const snapshotVazio: DashboardSnapshot = {
   tarefasPrioritarias: []
 };
 
-export function DashboardPage() {
+interface DashboardPageProps {
+  enabled: boolean;
+}
+
+export function DashboardPage({ enabled }: DashboardPageProps) {
   const [filtros, setFiltros] = useState<DashboardFilters>({});
   const [snapshot, setSnapshot] = useState<DashboardSnapshot>(snapshotVazio);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [options, setOptions] = useState({
     campus: [] as string[],
@@ -37,25 +41,39 @@ export function DashboardPage() {
   });
 
   useEffect(() => {
-    provider.getFilterOptions().then(setOptions).catch(() => setOptions({ campus: [], setores: [], tipos: [], status: [], responsaveis: [] }));
-  }, []);
+    if (!enabled) {
+      setSnapshot(snapshotVazio);
+      setOptions({ campus: [], setores: [], tipos: [], status: [], responsaveis: [] });
+      setErro(null);
+      return;
+    }
+
+    provider
+      .getFilterOptions()
+      .then(setOptions)
+      .catch(() => {
+        setOptions({ campus: [], setores: [], tipos: [], status: [], responsaveis: [] });
+        setErro('Nao foi possivel carregar as opcoes de filtro.');
+      });
+  }, [enabled]);
 
   useEffect(() => {
+    if (!enabled) return;
     setLoading(true);
     setErro(null);
     provider
       .getDashboardSnapshot(filtros)
       .then((data) => setSnapshot(data))
-      .catch(() => setErro('Não foi possível carregar os dados do dashboard.'))
+      .catch(() => setErro('Nao foi possivel carregar os dados do dashboard.'))
       .finally(() => setLoading(false));
-  }, [filtros]);
+  }, [enabled, filtros]);
 
   const kpiData = useMemo(
     () => [
-      { titulo: 'Processos Ativos', valor: snapshot.kpis.processosAtivos, icone: '📌' },
-      { titulo: 'Processos Concluídos', valor: snapshot.kpis.processosConcluidos, icone: '✅' },
-      { titulo: 'Processos Atrasados', valor: snapshot.kpis.processosAtrasados, icone: '⚠️' },
-      { titulo: 'SLA Aderido', valor: `${snapshot.kpis.slaAderido.toFixed(2)}%`, icone: '⏱️' }
+      { titulo: 'Processos Ativos', valor: snapshot.kpis.processosAtivos, icone: 'PA' },
+      { titulo: 'Processos Concluidos', valor: snapshot.kpis.processosConcluidos, icone: 'PC' },
+      { titulo: 'Processos Atrasados', valor: snapshot.kpis.processosAtrasados, icone: 'AT' },
+      { titulo: 'SLA Aderido', valor: `${snapshot.kpis.slaAderido.toFixed(2)}%`, icone: 'SLA' }
     ],
     [snapshot]
   );

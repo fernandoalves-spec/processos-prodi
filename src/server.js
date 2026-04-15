@@ -6,6 +6,7 @@ require('dotenv').config();
 const pool = require('./db');
 const { MASTER_EMAIL, PERFIS, initDatabase } = require('./bootstrap-db');
 const { obterMetricasOperacionais } = require('./services/processos-metricas.service');
+const { obterDashboardHome, obterDashboardHomeOptions } = require('./services/dashboard-home.service');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -447,6 +448,61 @@ app.get('/api/dashboard/operacional', exigirAutenticacao, async (req, res) => {
 
     console.error('Erro ao montar dashboard operacional:', error.message);
     return res.status(500).json({ erro: 'Erro interno ao montar dashboard operacional.' });
+  }
+});
+
+app.get('/api/dashboard/home/options', exigirAutenticacao, async (req, res) => {
+  try {
+    const payload = await obterDashboardHomeOptions();
+    return res.json(payload);
+  } catch (error) {
+    console.error('Erro ao listar opcoes de filtros do dashboard home:', error.message);
+    return res.status(500).json({ erro: 'Erro interno ao listar opcoes de filtros.' });
+  }
+});
+
+app.get('/api/dashboard/home', exigirAutenticacao, async (req, res) => {
+  const chavesPermitidas = new Set([
+    'dataInicio',
+    'dataFim',
+    'campus',
+    'setor',
+    'tipoProcesso',
+    'status',
+    'responsavel'
+  ]);
+
+  const chavesInvalidas = Object.keys(req.query).filter((chave) => !chavesPermitidas.has(chave));
+  if (chavesInvalidas.length) {
+    return res.status(400).json({ erro: `Filtros invalidos: ${chavesInvalidas.join(', ')}` });
+  }
+
+  const filtros = {
+    dataInicio: req.query.dataInicio ? validarDataISO(req.query.dataInicio) : undefined,
+    dataFim: req.query.dataFim ? validarDataISO(req.query.dataFim) : undefined,
+    campus: normalizarTexto(req.query.campus) || undefined,
+    setor: normalizarTexto(req.query.setor) || undefined,
+    tipoProcesso: normalizarTexto(req.query.tipoProcesso) || undefined,
+    status: normalizarTexto(req.query.status) || undefined,
+    responsavel: normalizarTexto(req.query.responsavel) || undefined
+  };
+
+  if (req.query.dataInicio && !filtros.dataInicio) {
+    return res.status(400).json({ erro: 'dataInicio deve estar no formato YYYY-MM-DD.' });
+  }
+  if (req.query.dataFim && !filtros.dataFim) {
+    return res.status(400).json({ erro: 'dataFim deve estar no formato YYYY-MM-DD.' });
+  }
+  if (filtros.dataInicio && filtros.dataFim && filtros.dataInicio > filtros.dataFim) {
+    return res.status(400).json({ erro: 'dataInicio nao pode ser maior que dataFim.' });
+  }
+
+  try {
+    const payload = await obterDashboardHome(filtros);
+    return res.json(payload);
+  } catch (error) {
+    console.error('Erro ao montar dashboard home:', error.message);
+    return res.status(500).json({ erro: 'Erro interno ao montar dashboard home.' });
   }
 });
 
