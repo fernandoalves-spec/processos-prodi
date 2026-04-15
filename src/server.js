@@ -5,6 +5,7 @@ require('dotenv').config();
 
 const pool = require('./db');
 const { MASTER_EMAIL, PERFIS, initDatabase } = require('./bootstrap-db');
+const { obterMetricasOperacionais } = require('./services/processos-metricas.service');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -428,6 +429,24 @@ app.get('/api/health', (req, res) => {
     status: 'ok',
     sistema: 'processos-prodi'
   });
+});
+
+app.get('/api/dashboard/operacional', exigirAutenticacao, async (req, res) => {
+  try {
+    const payload = await obterMetricasOperacionais({
+      dataInicio: req.query.dataInicio,
+      dataFim: req.query.dataFim
+    });
+
+    return res.json(payload);
+  } catch (error) {
+    if (error.statusCode === 400) {
+      return res.status(400).json({ erro: error.message });
+    }
+
+    console.error('Erro ao montar dashboard operacional:', error.message);
+    return res.status(500).json({ erro: 'Erro interno ao montar dashboard operacional.' });
+  }
 });
 
 app.get('/api/perfis', exigirAutenticacao, async (req, res) => {

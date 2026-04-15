@@ -216,6 +216,13 @@
       gap: 10px;
     }
 
+    .kpi-grid-operacional {
+      margin-top: 12px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
     .kpi {
       border: 1px solid #dbe4ea;
       border-radius: 12px;
@@ -399,6 +406,7 @@
       .brand h1 { font-size: 1.5rem; }
       .header-actions, .chip, .btn-link, .btn-ghost { width: 100%; }
       .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .kpi-grid-operacional { grid-template-columns: 1fr; }
       .col-2, .col-3, .col-4 { grid-column: span 12; }
       .actions { flex-direction: column; }
       .btn-primary, .btn-secondary { width: 100%; }
@@ -494,6 +502,22 @@
       <div class="card">
         <div class="section-title"><h3>Distribuicao por perfil</h3><span class="small">Top 10</span></div>
         <div id="chartPerfil" class="bars"></div>
+      </div>
+    </section>
+
+    <section class="section-grid">
+      <div class="card">
+        <div class="section-title"><h3>KPIs operacionais</h3><span class="small">WIP, Lead Time e SLA</span></div>
+        <div class="kpi-grid-operacional">
+          <div class="kpi"><div class="label">WIP (processos ativos)</div><div id="kpiWipAtivos" class="value">0</div></div>
+          <div class="kpi"><div class="label">Lead Time medio (dias)</div><div id="kpiLeadTime" class="value">0,00</div></div>
+          <div class="kpi"><div class="label">Taxa de cumprimento de SLA</div><div id="kpiTaxaSlaOperacional" class="value">0,00%</div></div>
+          <div class="kpi"><div class="label">Processos avaliados no SLA</div><div id="kpiSlaAvaliados" class="value">0</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title"><h3>Backlog por setor atual</h3><span class="small">Somente processos ativos</span></div>
+        <div id="chartBacklogSetor" class="bars"></div>
       </div>
     </section>
 
@@ -648,6 +672,11 @@
 
     function kpi(id, value) { document.getElementById(id).textContent = value ?? 0; }
 
+    function formatarDecimalPtBr(valor, casas = 2) {
+      const numero = Number(valor || 0);
+      return numero.toLocaleString('pt-BR', { minimumFractionDigits: casas, maximumFractionDigits: casas });
+    }
+
     function renderKpis(k) {
       kpi('kpiTotal', k?.totalProcessos);
       kpi('kpiAnalise', k?.emAnalise);
@@ -659,6 +688,22 @@
 
       const taxa = k?.taxaFinalizacaoPeriodo;
       document.getElementById('kpiTaxaFinalizacao').textContent = taxa === null || taxa === undefined ? '-' : `${taxa}%`;
+    }
+
+    function renderMetricasOperacionais(payload) {
+      const wip = payload?.wip || {};
+      const tempoVelocidade = payload?.tempoVelocidade || {};
+      const backlog = Array.isArray(wip.backlogPorSetor) ? wip.backlogPorSetor : [];
+
+      kpi('kpiWipAtivos', wip.processosAtivos ?? 0);
+      kpi('kpiLeadTime', formatarDecimalPtBr(tempoVelocidade.leadTimeMedioDias, 2));
+      kpi('kpiTaxaSlaOperacional', `${formatarDecimalPtBr(tempoVelocidade.taxaCumprimentoSla, 2)}%`);
+      kpi('kpiSlaAvaliados', tempoVelocidade.totalSlaAvaliado ?? 0);
+
+      bars(
+        document.getElementById('chartBacklogSetor'),
+        backlog.map((item) => ({ label: item.setor, qtd: item.quantidade }))
+      );
     }
 
     function buildDashQuery() {
@@ -716,23 +761,41 @@
 
       try {
         const qs = buildDashQuery().toString();
-        const resp = await fetch(qs ? `/api/dashboard/gerencial?${qs}` : '/api/dashboard/gerencial');
-        const data = await resp.json();
+        const urlGerencial = qs ? `/api/dashboard/gerencial?${qs}` : '/api/dashboard/gerencial';
+        const urlOperacional = qs ? `/api/dashboard/operacional?${qs}` : '/api/dashboard/operacional';
 
-        if (!resp.ok) {
-          msg(msgDash, data.erro || 'Erro ao carregar painel.', 'erro');
+        const [respGerencial, respOperacional] = await Promise.all([
+          fetch(urlGerencial),
+          fetch(urlOperacional)
+        ]);
+
+        const [dataGerencial, dataOperacional] = await Promise.all([
+          respGerencial.json(),
+          respOperacional.json()
+        ]);
+
+        if (!respGerencial.ok) {
+          msg(msgDash, dataGerencial.erro || 'Erro ao carregar painel.', 'erro');
           return;
         }
 
-        renderKpis(data.kpis);
-        bars(document.getElementById('chartStatus'), data?.graficos?.status);
-        bars(document.getElementById('chartOrigem'), data?.graficos?.origem);
-        bars(document.getElementById('chartDestino'), data?.graficos?.destino);
-        bars(document.getElementById('chartPerfil'), data?.graficos?.perfil);
-        renderFluxos(data?.rankings?.fluxos);
-        renderRecentes(data?.recentes);
-        renderAlerts(data?.alertas);
-        renderMeta(data?.metadados);
+        renderKpis(dataGerencial.kpis);
+        bars(document.getElementById('chartStatus'), dataGerencial?.graficos?.status);
+        bars(document.getElementById('chartOrigem'), dataGerencial?.graficos?.origem);
+        bars(document.getElementById('chartDestino'), dataGerencial?.graficos?.destino);
+        bars(document.getElementById('chartPerfil'), dataGerencial?.graficos?.perfil);
+        renderFluxos(dataGerencial?.rankings?.fluxos);
+        renderRecentes(dataGerencial?.recentes);
+        renderAlerts(dataGerencial?.alertas);
+        renderMeta(dataGerencial?.metadados);
+
+        if (respOperacional.ok) {
+          renderMetricasOperacionais(dataOperacional);
+        } else {
+          renderMetricasOperacionais(null);
+          msg(msgDash, dataOperacional.erro || 'Painel operacional indisponivel para o recorte atual.', 'erro');
+        }
+
         ultimaAtualizacao.textContent = `Atualizado em ${nowLabel()}`;
       } catch (err) {
         msg(msgDash, 'Falha de comunicacao ao carregar painel.', 'erro');

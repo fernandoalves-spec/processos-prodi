@@ -84,6 +84,12 @@ async function initDatabase() {
         origem TEXT,
         destino TEXT,
         prazo_dias_uteis INTEGER,
+        numero_processo TEXT,
+        tipo_processo TEXT,
+        setor_atual TEXT,
+        data_abertura TIMESTAMPTZ,
+        data_conclusao TIMESTAMPTZ,
+        sla_dias INTEGER,
         assunto TEXT NOT NULL,
         observacao TEXT,
         criado_por TEXT,
@@ -111,6 +117,12 @@ async function initDatabase() {
     await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS origem TEXT`);
     await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS destino TEXT`);
     await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS prazo_dias_uteis INTEGER`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS numero_processo TEXT`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS tipo_processo TEXT`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS setor_atual TEXT`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS data_abertura TIMESTAMPTZ`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS data_conclusao TIMESTAMPTZ`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS sla_dias INTEGER`);
     await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS assunto TEXT`);
     await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS observacao TEXT`);
     await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS criado_por TEXT`);
@@ -139,6 +151,9 @@ async function initDatabase() {
 
     await client.query('CREATE INDEX IF NOT EXISTS idx_sessoes_expira_em ON sessoes(expira_em)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_processos_protocolo ON processos(protocolo)');
+    await client.query('CREATE INDEX IF NOT EXISTS idx_processos_status ON processos(status)');
+    await client.query('CREATE INDEX IF NOT EXISTS idx_processos_data_abertura ON processos(data_abertura)');
+    await client.query('CREATE INDEX IF NOT EXISTS idx_processos_data_conclusao ON processos(data_conclusao)');
     await client.query('CREATE UNIQUE INDEX IF NOT EXISTS uq_setores_sigla_lower ON setores ((LOWER(sigla)))');
     await client.query('CREATE UNIQUE INDEX IF NOT EXISTS uq_setores_nome_lower ON setores ((LOWER(nome)))');
 
