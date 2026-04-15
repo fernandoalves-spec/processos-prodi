@@ -3,11 +3,12 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppLayout } from './components/AppLayout';
 import { PlaceholderPage } from './components/PlaceholderPage';
 import { DashboardPage } from './features/dashboard/DashboardPage';
+import { ProcessosPage } from './features/processos/ProcessosPage';
 import { getSessaoUsuario, logout } from './services/authService';
 
 export function App() {
   const [autenticado, setAutenticado] = useState(false);
-  const [usuarioLabel, setUsuarioLabel] = useState('Não autenticado');
+  const [usuarioLabel, setUsuarioLabel] = useState('Nao autenticado');
 
   useEffect(() => {
     getSessaoUsuario()
@@ -17,11 +18,11 @@ export function App() {
           setUsuarioLabel(`${sessao.usuario.nome} (${sessao.usuario.perfilNome})`);
           return;
         }
-        setUsuarioLabel('Não autenticado');
+        setUsuarioLabel('Nao autenticado');
       })
       .catch(() => {
         setAutenticado(false);
-        setUsuarioLabel('Não autenticado');
+        setUsuarioLabel('Nao autenticado');
       });
   }, []);
 
@@ -40,7 +41,7 @@ export function App() {
           <div className="panel-title">
             <h2>Acesso ao Dashboard</h2>
           </div>
-          <p>Você pode visualizar a interface, mas para consumir dados reais é necessário autenticar.</p>
+          <p>Voce pode visualizar a interface, mas para consumir dados reais e necessario autenticar.</p>
           <a className="btn-link inline-btn" href="/auth/google">
             Entrar com Google
           </a>
@@ -50,17 +51,14 @@ export function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<DashboardPage enabled={autenticado} />} />
-        <Route
-          path="/processos"
-          element={<PlaceholderPage titulo="Gestão de Processos" descricao="Área para lista detalhada e tramitação por processo." />}
-        />
+        <Route path="/processos" element={<ProcessosPage enabled={autenticado} />} />
         <Route
           path="/setores"
-          element={<PlaceholderPage titulo="Setores" descricao="Área para indicadores de desempenho e pendências por setor." />}
+          element={<PlaceholderPage titulo="Setores" descricao="Area para indicadores de desempenho e pendencias por setor." />}
         />
         <Route
           path="/usuarios"
-          element={<PlaceholderPage titulo="Usuários" descricao="Área para acompanhamento de desempenho por responsável e unidade." />}
+          element={<PlaceholderPage titulo="Usuarios" descricao="Area para acompanhamento de desempenho por responsavel e unidade." />}
         />
       </Routes>
     </AppLayout>
