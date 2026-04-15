@@ -420,15 +420,15 @@
     <div class="header-wrap">
       <div class="brand">
         <h1>Indicadores Gerenciais</h1>
-        <p>Leitura executiva da operacao PRODI com filtros globais e visao consolidada.</p>
+        <p>Leitura executiva da operação PRODI com filtros globais e visão consolidada.</p>
       </div>
 
       <div class="header-actions">
-        <span class="chip" id="usuarioInfo">Nao autenticado</span>
+        <span class="chip" id="usuarioInfo">Não autenticado</span>
         <a class="btn-link" id="btnLoginGoogle" href="/auth/google">Entrar com Google</a>
         <a class="btn-link hidden" id="btnProcessos" href="/processos">Processos</a>
         <a class="btn-link hidden" id="btnSetores" href="/setores">Setores</a>
-        <a class="btn-link hidden" id="btnUsuarios" href="/usuarios">Usuarios</a>
+        <a class="btn-link hidden" id="btnUsuarios" href="/usuarios">Usuários</a>
         <button class="btn btn-ghost hidden" id="btnLogout" type="button">Sair</button>
       </div>
     </div>
@@ -437,24 +437,24 @@
   <main>
     <section class="card">
       <h2>Filtros globais</h2>
-      <p class="sub">Use os filtros para recompor os indicadores e distribuições.</p>
+      <p class="sub">Use os filtros para recompor os indicadores do painel.</p>
       <div id="mensagemDashboard" class="msg"></div>
 
       <div class="filters-grid">
         <div class="col-4"><label for="dashQ">Busca textual</label><input id="dashQ" placeholder="Protocolo, assunto, origem, destino"></div>
-        <div class="col-2"><label for="dashStatus">Status</label><select id="dashStatus"><option value="">Todos</option><option value="Recebido">Recebido</option><option value="Encaminhados Externamente">Encaminhados Externamente</option><option value="Encaminhado Internamente">Encaminhado Internamente</option><option value="Finalizado">Finalizado</option><option value="Em analise">Em analise</option></select></div>
+        <div class="col-2"><label for="dashStatus">Status</label><select id="dashStatus"><option value="">Todos</option><option value="Recebido">Recebido</option><option value="Encaminhados Externamente">Encaminhados Externamente</option><option value="Encaminhado Internamente">Encaminhado Internamente</option><option value="Finalizado">Finalizado</option><option value="Em analise">Em análise</option></select></div>
         <div class="col-2"><label for="dashOrigem">Origem</label><select id="dashOrigem"><option value="">Todos</option></select></div>
         <div class="col-2"><label for="dashDestino">Destino</label><select id="dashDestino"><option value="">Todos</option></select></div>
         <div class="col-2"><label for="dashPerfil">Perfil</label><select id="dashPerfil"><option value="">Todos</option><option value="ADMIN_MASTER">ADMIN_MASTER</option><option value="GESTOR_PRODI">GESTOR_PRODI</option><option value="ANALISTA_PROCESSOS">ANALISTA_PROCESSOS</option><option value="APOIO_ADMINISTRATIVO">APOIO_ADMINISTRATIVO</option><option value="SEM_PERFIL">SEM_PERFIL</option></select></div>
-        <div class="col-2"><label for="dashSetorAtivo">Situacao do setor</label><select id="dashSetorAtivo"><option value="">Todos</option><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select></div>
-        <div class="col-2"><label for="dashDataInicio">Data inicio</label><input id="dashDataInicio" type="date"></div>
+        <div class="col-2"><label for="dashSetorAtivo">Situação do setor</label><select id="dashSetorAtivo"><option value="">Todos</option><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select></div>
+        <div class="col-2"><label for="dashDataInicio">Data início</label><input id="dashDataInicio" type="date"></div>
         <div class="col-2"><label for="dashDataFim">Data fim</label><input id="dashDataFim" type="date"></div>
       </div>
 
       <div class="quick-range">
-        <button class="range-btn" type="button" data-range="7">Ultimos 7 dias</button>
-        <button class="range-btn" type="button" data-range="30">Ultimos 30 dias</button>
-        <button class="range-btn" type="button" data-range="90">Ultimos 90 dias</button>
+        <button class="range-btn" type="button" data-range="7">Últimos 7 dias</button>
+        <button class="range-btn" type="button" data-range="30">Últimos 30 dias</button>
+        <button class="range-btn" type="button" data-range="90">Últimos 90 dias</button>
       </div>
 
       <div class="actions">
@@ -468,88 +468,28 @@
     <section class="card">
       <div class="section-title">
         <h2>Indicadores gerenciais</h2>
-        <span class="small" id="ultimaAtualizacao">Sem atualizacao</span>
+        <span class="small" id="ultimaAtualizacao">Sem atualização</span>
       </div>
 
       <div class="kpi-grid">
         <div class="kpi total"><div class="label">Total de processos</div><div id="kpiTotal" class="value">0</div></div>
-        <div class="kpi analise"><div class="label">Em analise</div><div id="kpiAnalise" class="value">0</div></div>
+        <div class="kpi analise"><div class="label">Em análise</div><div id="kpiAnalise" class="value">0</div></div>
         <div class="kpi finalizados"><div class="label">Finalizados</div><div id="kpiFinalizados" class="value">0</div></div>
         <div class="kpi aguardando"><div class="label">Aguardando andamento</div><div id="kpiAguardando" class="value">0</div></div>
         <div class="kpi"><div class="label">Setores ativos</div><div id="kpiSetoresAtivos" class="value">0</div></div>
-        <div class="kpi usuarios"><div class="label">Usuarios ativos</div><div id="kpiUsuariosAtivos" class="value">0</div></div>
+        <div class="kpi usuarios"><div class="label">Usuários ativos</div><div id="kpiUsuariosAtivos" class="value">0</div></div>
         <div class="kpi"><div class="label">Processos sem destino</div><div id="kpiSemDestino" class="value">0</div></div>
-        <div class="kpi"><div class="label">Taxa de finalizacao</div><div id="kpiTaxaFinalizacao" class="value">-</div></div>
+        <div class="kpi"><div class="label">Taxa de finalização</div><div id="kpiTaxaFinalizacao" class="value">-</div></div>
       </div>
     </section>
 
-    <section class="section-grid">
-      <div class="card">
-        <div class="section-title"><h3>Distribuicao por status</h3><span class="small">Top 10</span></div>
-        <div id="chartStatus" class="bars"></div>
-      </div>
-      <div class="card">
-        <div class="section-title"><h3>Distribuicao por origem</h3><span class="small">Top 10</span></div>
-        <div id="chartOrigem" class="bars"></div>
-      </div>
-    </section>
-
-    <section class="section-grid">
-      <div class="card">
-        <div class="section-title"><h3>Distribuicao por destino</h3><span class="small">Top 10</span></div>
-        <div id="chartDestino" class="bars"></div>
-      </div>
-      <div class="card">
-        <div class="section-title"><h3>Distribuicao por perfil</h3><span class="small">Top 10</span></div>
-        <div id="chartPerfil" class="bars"></div>
-      </div>
-    </section>
-
-    <section class="section-grid">
-      <div class="card">
-        <div class="section-title"><h3>KPIs operacionais</h3><span class="small">WIP, Lead Time e SLA</span></div>
-        <div class="kpi-grid-operacional">
-          <div class="kpi"><div class="label">WIP (processos ativos)</div><div id="kpiWipAtivos" class="value">0</div></div>
-          <div class="kpi"><div class="label">Lead Time medio (dias)</div><div id="kpiLeadTime" class="value">0,00</div></div>
-          <div class="kpi"><div class="label">Taxa de cumprimento de SLA</div><div id="kpiTaxaSlaOperacional" class="value">0,00%</div></div>
-          <div class="kpi"><div class="label">Processos avaliados no SLA</div><div id="kpiSlaAvaliados" class="value">0</div></div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="section-title"><h3>Backlog por setor atual</h3><span class="small">Somente processos ativos</span></div>
-        <div id="chartBacklogSetor" class="bars"></div>
-      </div>
-    </section>
-
-    <section class="section-grid">
-      <div class="card">
-        <div class="section-title"><h3>Fluxos mais frequentes</h3><span class="small">Origem x destino</span></div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Origem</th><th>Destino</th><th>Qtd</th></tr></thead>
-            <tbody id="tabelaFluxos"></tbody>
-          </table>
-        </div>
-      </div>
-      <div class="card">
-        <div class="section-title"><h3>Alertas operacionais</h3><span class="small">Prioridade</span></div>
-        <div id="listaAlertas" class="alert-list"></div>
-      </div>
-    </section>
-
-    <section class="section-grid">
-      <div class="card">
-        <div class="section-title"><h3>Processos recentes</h3><span class="small">Ultimas atualizacoes</span></div>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Status</th><th>Protocolo</th><th>Assunto</th><th>Origem</th><th>Destino</th><th>Atualizado</th></tr></thead>
-            <tbody id="tabelaRecentes"></tbody>
-          </table>
-        </div>
-      </div>
-      <div class="card">
-        <div class="section-title"><h3>Metadados do painel</h3><span class="small">Cobertura dos dados</span></div>
-        <div id="metadadosPainel" class="meta-list"></div>
+    <section class="card">
+      <div class="section-title"><h3>KPIs operacionais</h3><span class="small">WIP, Lead Time e SLA</span></div>
+      <div class="kpi-grid-operacional">
+        <div class="kpi"><div class="label">WIP (processos ativos)</div><div id="kpiWipAtivos" class="value">0</div></div>
+        <div class="kpi"><div class="label">Lead Time médio (dias)</div><div id="kpiLeadTime" class="value">0,00</div></div>
+        <div class="kpi"><div class="label">Taxa de cumprimento de SLA</div><div id="kpiTaxaSlaOperacional" class="value">0,00%</div></div>
+        <div class="kpi"><div class="label">Processos avaliados no SLA</div><div id="kpiSlaAvaliados" class="value">0</div></div>
       </div>
     </section>
   </main>
@@ -592,6 +532,7 @@
     function setLoading(show) { loading.classList.toggle('show', Boolean(show)); }
 
     function bars(el, arr) {
+      if (!el) return;
       const data = Array.isArray(arr) ? arr : [];
       if (!data.length) {
         el.innerHTML = '<div class="empty">Sem dados para o recorte.</div>';
@@ -622,54 +563,6 @@
       if ([...dashDestino.options].some((o) => o.value === destinoAtual)) dashDestino.value = destinoAtual;
     }
 
-    function renderFluxos(rows) {
-      const el = document.getElementById('tabelaFluxos');
-      const data = Array.isArray(rows) ? rows : [];
-      if (!data.length) {
-        el.innerHTML = '<tr><td colspan="3" class="empty">Nenhum fluxo encontrado.</td></tr>';
-        return;
-      }
-      el.innerHTML = data.map((r) => `<tr><td>${r.origem || '-'}</td><td>${r.destino || '-'}</td><td>${r.qtd || 0}</td></tr>`).join('');
-    }
-
-    function tagStatusClass(status) {
-      const v = String(status || '').toLowerCase();
-      if (v.includes('analise')) return 'analise';
-      if (v.includes('finalizado')) return 'finalizado';
-      if (v.includes('encaminhado')) return 'encaminhado';
-      return 'recebido';
-    }
-
-    function renderRecentes(rows) {
-      const el = document.getElementById('tabelaRecentes');
-      const data = Array.isArray(rows) ? rows : [];
-      if (!data.length) {
-        el.innerHTML = '<tr><td colspan="6" class="empty">Nenhum processo recente.</td></tr>';
-        return;
-      }
-      el.innerHTML = data.map((r) => `<tr><td><span class="tag ${tagStatusClass(r.status)}">${r.status || '-'}</span></td><td>${r.protocolo || '-'}</td><td>${r.assunto || '-'}</td><td>${r.origem || '-'}</td><td>${r.destino || '-'}</td><td>${dt(r.atualizadoEm || r.criadoEm)}</td></tr>`).join('');
-    }
-
-    function renderAlerts(alertas) {
-      const el = document.getElementById('listaAlertas');
-      const itens = alertas?.itens || [];
-      if (!itens.length) {
-        el.innerHTML = '<div class="empty">Sem alertas relevantes.</div>';
-        return;
-      }
-      el.innerHTML = itens.map((a) => `<div class="alert-item ${a.nivel === 'alto' ? 'alto' : ''}"><strong>${a.titulo}</strong><br>${a.descricao}<br>Quantidade: <strong>${a.quantidade}</strong></div>`).join('');
-    }
-
-    function renderMeta(meta) {
-      const el = document.getElementById('metadadosPainel');
-      const campos = meta?.camposDisponiveis || {};
-      const parts = [`<div class="meta-item"><strong>Regra aguardando</strong>: ${meta?.statusAguardandoRegra || '-'}</div>`];
-      Object.entries(campos).forEach(([k, v]) => {
-        parts.push(`<div class="meta-item"><strong>${k}</strong>: ${v ? 'Disponivel' : 'Nao disponivel'}</div>`);
-      });
-      el.innerHTML = parts.join('');
-    }
-
     function kpi(id, value) { document.getElementById(id).textContent = value ?? 0; }
 
     function formatarDecimalPtBr(valor, casas = 2) {
@@ -693,17 +586,11 @@
     function renderMetricasOperacionais(payload) {
       const wip = payload?.wip || {};
       const tempoVelocidade = payload?.tempoVelocidade || {};
-      const backlog = Array.isArray(wip.backlogPorSetor) ? wip.backlogPorSetor : [];
 
       kpi('kpiWipAtivos', wip.processosAtivos ?? 0);
       kpi('kpiLeadTime', formatarDecimalPtBr(tempoVelocidade.leadTimeMedioDias, 2));
       kpi('kpiTaxaSlaOperacional', `${formatarDecimalPtBr(tempoVelocidade.taxaCumprimentoSla, 2)}%`);
       kpi('kpiSlaAvaliados', tempoVelocidade.totalSlaAvaliado ?? 0);
-
-      bars(
-        document.getElementById('chartBacklogSetor'),
-        backlog.map((item) => ({ label: item.setor, qtd: item.quantidade }))
-      );
     }
 
     function buildDashQuery() {
@@ -727,7 +614,7 @@
       if (dashDestino.value) entries.push(`Destino: ${dashDestino.value}`);
       if (dashPerfil.value) entries.push(`Perfil: ${dashPerfil.value}`);
       if (dashSetorAtivo.value) entries.push(`Setor: ${dashSetorAtivo.value}`);
-      if (dashDataInicio.value) entries.push(`Inicio: ${dashDataInicio.value}`);
+      if (dashDataInicio.value) entries.push(`Início: ${dashDataInicio.value}`);
       if (dashDataFim.value) entries.push(`Fim: ${dashDataFim.value}`);
 
       if (!entries.length) {
@@ -780,25 +667,17 @@
         }
 
         renderKpis(dataGerencial.kpis);
-        bars(document.getElementById('chartStatus'), dataGerencial?.graficos?.status);
-        bars(document.getElementById('chartOrigem'), dataGerencial?.graficos?.origem);
-        bars(document.getElementById('chartDestino'), dataGerencial?.graficos?.destino);
-        bars(document.getElementById('chartPerfil'), dataGerencial?.graficos?.perfil);
-        renderFluxos(dataGerencial?.rankings?.fluxos);
-        renderRecentes(dataGerencial?.recentes);
-        renderAlerts(dataGerencial?.alertas);
-        renderMeta(dataGerencial?.metadados);
 
         if (respOperacional.ok) {
           renderMetricasOperacionais(dataOperacional);
         } else {
           renderMetricasOperacionais(null);
-          msg(msgDash, dataOperacional.erro || 'Painel operacional indisponivel para o recorte atual.', 'erro');
+          msg(msgDash, dataOperacional.erro || 'Painel operacional indisponível para o recorte atual.', 'erro');
         }
 
         ultimaAtualizacao.textContent = `Atualizado em ${nowLabel()}`;
       } catch (err) {
-        msg(msgDash, 'Falha de comunicacao ao carregar painel.', 'erro');
+        msg(msgDash, 'Falha de comunicação ao carregar painel.', 'erro');
       } finally {
         setLoading(false);
       }
@@ -818,7 +697,7 @@
 
     function applyAuth() {
       if (!autenticado || !usuarioAtual) {
-        usuarioInfo.textContent = 'Nao autenticado';
+        usuarioInfo.textContent = 'Não autenticado';
         btnLoginGoogle.classList.remove('hidden');
         btnLogout.classList.add('hidden');
         btnProcessos.classList.add('hidden');
