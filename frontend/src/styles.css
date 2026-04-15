@@ -420,6 +420,12 @@ body {
   background: #f8fafc;
 }
 
+.icon-eye {
+  min-width: 36px;
+  text-align: center;
+  font-size: 1rem;
+}
+
 .paginacao {
   margin-top: 10px;
   display: flex;
@@ -431,6 +437,74 @@ body {
 
 .paginacao-botoes {
   display: flex;
+  gap: 8px;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+
+.modal-card {
+  width: min(980px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+  background: #fff;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  padding: 14px;
+}
+
+.movimentacoes {
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  padding: 10px;
+  margin-bottom: 12px;
+}
+
+.movimentacoes-botoes {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.modal-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.modal-form-grid label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.modal-form-grid input,
+.modal-form-grid select,
+.modal-form-grid textarea {
+  border: 1px solid #c9d6e2;
+  border-radius: 10px;
+  padding: 8px;
+  font-size: 0.9rem;
+}
+
+.field-span-2 {
+  grid-column: span 2;
+}
+
+.modal-actions {
+  margin-top: 12px;
+  display: flex;
+  justify-content: flex-end;
   gap: 8px;
 }
 
@@ -456,6 +530,14 @@ body {
 
   .processos-filtros {
     grid-template-columns: 1fr;
+  }
+
+  .modal-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .field-span-2 {
+    grid-column: span 1;
   }
 }
 
