@@ -331,7 +331,7 @@ body {
 
 .processos-layout {
   display: grid;
-  grid-template-columns: 2.1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 12px;
   align-items: start;
 }
@@ -434,21 +434,6 @@ body {
   gap: 8px;
 }
 
-.processo-detalhe {
-  position: sticky;
-  top: 12px;
-}
-
-.detalhe-conteudo {
-  display: grid;
-  gap: 6px;
-}
-
-.detalhe-conteudo p {
-  margin: 0;
-  font-size: 0.88rem;
-}
-
 @media (max-width: 1100px) {
   .filters-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -456,10 +441,6 @@ body {
 
   .processos-layout {
     grid-template-columns: 1fr;
-  }
-
-  .processo-detalhe {
-    position: static;
   }
 }
 

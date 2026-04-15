@@ -34,7 +34,6 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
   const [itensPorPagina, setItensPorPagina] = useState(10);
   const [sortField, setSortField] = useState<SortField>('atualizacao');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
-  const [processoSelecionadoId, setProcessoSelecionadoId] = useState<number | null>(null);
 
   useEffect(() => {
     if (!enabled) {
@@ -48,7 +47,6 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
     listarProcessos()
       .then((dados) => {
         setProcessos(dados);
-        if (dados.length) setProcessoSelecionadoId((atual) => atual ?? dados[0].id);
       })
       .catch(() => setErro('Nao foi possivel carregar a lista de processos.'))
       .finally(() => setLoading(false));
@@ -110,8 +108,6 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
       setPaginaAtual(totalPaginas);
     }
   }, [paginaAtual, totalPaginas]);
-
-  const processoSelecionado = processosFiltradosOrdenados.find((item) => item.id === processoSelecionadoId) || null;
 
   const alterarOrdenacao = (field: SortField) => {
     if (sortField === field) {
@@ -223,7 +219,6 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
                           Atualizacao {labelOrdenacao('atualizacao')}
                         </button>
                       </th>
-                      <th />
                     </tr>
                   </thead>
                   <tbody>
@@ -236,16 +231,11 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
                         </td>
                         <td>{`${item.origem || '-'} -> ${item.destino || '-'}`}</td>
                         <td>{formatarData(item.atualizadoEm || item.criadoEm)}</td>
-                        <td>
-                          <button className="btn-mini" type="button" onClick={() => setProcessoSelecionadoId(item.id)}>
-                            Detalhar
-                          </button>
-                        </td>
                       </tr>
                     ))}
                     {!processosPaginados.length ? (
                       <tr>
-                        <td colSpan={6} className="muted">
+                        <td colSpan={5} className="muted">
                           Nenhum processo encontrado para os filtros aplicados.
                         </td>
                       </tr>
@@ -266,60 +256,6 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
                   </button>
                 </div>
               </div>
-
-              <aside className="processo-detalhe panel">
-                <div className="panel-title">
-                  <h3>Tramitacao do Processo</h3>
-                </div>
-                {processoSelecionado ? (
-                  <div className="detalhe-conteudo">
-                    <p>
-                      <strong>Protocolo:</strong> {processoSelecionado.protocolo}
-                    </p>
-                    <p>
-                      <strong>Assunto:</strong> {processoSelecionado.assunto}
-                    </p>
-                    <p>
-                      <strong>Status:</strong> {processoSelecionado.status}
-                    </p>
-                    <p>
-                      <strong>Origem:</strong> {processoSelecionado.origem || '-'}
-                    </p>
-                    <p>
-                      <strong>Destino:</strong> {processoSelecionado.destino || '-'}
-                    </p>
-                    <p>
-                      <strong>Prazo (dias uteis):</strong> {processoSelecionado.prazoDiasUteis ?? '-'}
-                    </p>
-                    <p>
-                      <strong>Criado em:</strong> {formatarData(processoSelecionado.criadoEm)}
-                    </p>
-                    <p>
-                      <strong>Atualizado em:</strong> {formatarData(processoSelecionado.atualizadoEm)}
-                    </p>
-                    <p>
-                      <strong>Criado por:</strong> {processoSelecionado.criadoPor || '-'}
-                    </p>
-                    <p>
-                      <strong>Atualizado por:</strong> {processoSelecionado.atualizadoPor || '-'}
-                    </p>
-                    {processoSelecionado.link ? (
-                      <p>
-                        <a href={processoSelecionado.link} target="_blank" rel="noreferrer">
-                          Abrir documento vinculado
-                        </a>
-                      </p>
-                    ) : null}
-                    {processoSelecionado.observacao ? (
-                      <p>
-                        <strong>Observacao:</strong> {processoSelecionado.observacao}
-                      </p>
-                    ) : null}
-                  </div>
-                ) : (
-                  <p className="muted">Selecione um processo para ver a tramitacao.</p>
-                )}
-              </aside>
             </div>
           </>
         )}
