@@ -149,11 +149,44 @@ async function initDatabase() {
       )
     `);
 
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS pendencias_criticas (
+        id SERIAL PRIMARY KEY,
+        titulo TEXT NOT NULL,
+        quantidade INTEGER,
+        severidade TEXT NOT NULL DEFAULT 'media',
+        prioridade INTEGER NOT NULL DEFAULT 1,
+        ativo BOOLEAN NOT NULL DEFAULT TRUE,
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        atualizado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        CONSTRAINT ck_pendencias_criticas_severidade
+          CHECK (severidade IN ('alta', 'media', 'baixa'))
+      )
+    `);
+
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS tarefas_prioritarias (
+        id SERIAL PRIMARY KEY,
+        titulo TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'nao_iniciada',
+        responsavel TEXT,
+        prazo DATE,
+        prioridade INTEGER NOT NULL DEFAULT 1,
+        ativo BOOLEAN NOT NULL DEFAULT TRUE,
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        atualizado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        CONSTRAINT ck_tarefas_prioritarias_status
+          CHECK (status IN ('nao_iniciada', 'em_andamento', 'concluida'))
+      )
+    `);
+
     await client.query('CREATE INDEX IF NOT EXISTS idx_sessoes_expira_em ON sessoes(expira_em)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_processos_protocolo ON processos(protocolo)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_processos_status ON processos(status)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_processos_data_abertura ON processos(data_abertura)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_processos_data_conclusao ON processos(data_conclusao)');
+    await client.query('CREATE INDEX IF NOT EXISTS idx_pendencias_criticas_ativo_prioridade ON pendencias_criticas(ativo, prioridade)');
+    await client.query('CREATE INDEX IF NOT EXISTS idx_tarefas_prioritarias_ativo_prioridade ON tarefas_prioritarias(ativo, prioridade)');
     await client.query('CREATE UNIQUE INDEX IF NOT EXISTS uq_setores_sigla_lower ON setores ((LOWER(sigla)))');
     await client.query('CREATE UNIQUE INDEX IF NOT EXISTS uq_setores_nome_lower ON setores ((LOWER(nome)))');
 
@@ -183,6 +216,32 @@ async function initDatabase() {
       `,
       ['Fernando Alves', MASTER_EMAIL, 'ADMIN_MASTER']
     );
+
+    const qtdPendencias = await client.query('SELECT COUNT(*)::int AS total FROM pendencias_criticas');
+    if ((qtdPendencias.rows[0]?.total || 0) === 0) {
+      await client.query(
+        `
+          INSERT INTO pendencias_criticas (titulo, quantidade, severidade, prioridade)
+          VALUES
+            ('Relatorios pendentes de validacao', 6, 'alta', 1),
+            ('Contratos com prazo vencido', 3, 'alta', 2),
+            ('Orcamentos em analise sem parecer final', 5, 'media', 3)
+        `
+      );
+    }
+
+    const qtdTarefas = await client.query('SELECT COUNT(*)::int AS total FROM tarefas_prioritarias');
+    if ((qtdTarefas.rows[0]?.total || 0) === 0) {
+      await client.query(
+        `
+          INSERT INTO tarefas_prioritarias (titulo, status, responsavel, prazo, prioridade)
+          VALUES
+            ('Revisao de politicas institucionais', 'em_andamento', 'Gestao PRODI', NULL, 1),
+            ('Auditoria interna de fluxos', 'nao_iniciada', 'Comissao Interna', NULL, 2),
+            ('Planejamento estrategico consolidado', 'concluida', 'Coordenacao de Planejamento', NULL, 3)
+        `
+      );
+    }
 
     await client.query('COMMIT');
   } catch (error) {

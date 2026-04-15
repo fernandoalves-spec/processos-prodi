@@ -7,6 +7,16 @@ const pool = require('./db');
 const { MASTER_EMAIL, PERFIS, initDatabase } = require('./bootstrap-db');
 const { obterMetricasOperacionais } = require('./services/processos-metricas.service');
 const { obterDashboardHome, obterDashboardHomeOptions } = require('./services/dashboard-home.service');
+const {
+  listarPendenciasCriticas,
+  criarPendenciaCritica,
+  atualizarPendenciaCritica,
+  removerPendenciaCritica,
+  listarTarefasPrioritarias,
+  criarTarefaPrioritaria,
+  atualizarTarefaPrioritaria,
+  removerTarefaPrioritaria
+} = require('./services/dashboard-management.service');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -503,6 +513,116 @@ app.get('/api/dashboard/home', exigirAutenticacao, async (req, res) => {
   } catch (error) {
     console.error('Erro ao montar dashboard home:', error.message);
     return res.status(500).json({ erro: 'Erro interno ao montar dashboard home.' });
+  }
+});
+
+app.get('/api/dashboard/home/pendencias', exigirAutenticacao, async (req, res) => {
+  try {
+    const lista = await listarPendenciasCriticas();
+    return res.json(lista);
+  } catch (error) {
+    console.error('Erro ao listar pendencias criticas:', error.message);
+    return res.status(500).json({ erro: 'Erro interno ao listar pendencias criticas.' });
+  }
+});
+
+app.post('/api/dashboard/home/pendencias', exigirAutenticacao, async (req, res) => {
+  try {
+    const pendencia = await criarPendenciaCritica(req.body || {});
+    return res.status(201).json({
+      mensagem: 'Pendencia critica cadastrada com sucesso.',
+      pendencia
+    });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ erro: error.message });
+    }
+    console.error('Erro ao cadastrar pendencia critica:', error.message);
+    return res.status(500).json({ erro: 'Erro interno ao cadastrar pendencia critica.' });
+  }
+});
+
+app.put('/api/dashboard/home/pendencias/:id', exigirAutenticacao, async (req, res) => {
+  try {
+    const pendencia = await atualizarPendenciaCritica(req.params.id, req.body || {});
+    return res.json({
+      mensagem: 'Pendencia critica atualizada com sucesso.',
+      pendencia
+    });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ erro: error.message });
+    }
+    console.error('Erro ao atualizar pendencia critica:', error.message);
+    return res.status(500).json({ erro: 'Erro interno ao atualizar pendencia critica.' });
+  }
+});
+
+app.delete('/api/dashboard/home/pendencias/:id', exigirAutenticacao, async (req, res) => {
+  try {
+    await removerPendenciaCritica(req.params.id);
+    return res.json({ mensagem: 'Pendencia critica removida com sucesso.' });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ erro: error.message });
+    }
+    console.error('Erro ao remover pendencia critica:', error.message);
+    return res.status(500).json({ erro: 'Erro interno ao remover pendencia critica.' });
+  }
+});
+
+app.get('/api/dashboard/home/tarefas', exigirAutenticacao, async (req, res) => {
+  try {
+    const lista = await listarTarefasPrioritarias();
+    return res.json(lista);
+  } catch (error) {
+    console.error('Erro ao listar tarefas prioritarias:', error.message);
+    return res.status(500).json({ erro: 'Erro interno ao listar tarefas prioritarias.' });
+  }
+});
+
+app.post('/api/dashboard/home/tarefas', exigirAutenticacao, async (req, res) => {
+  try {
+    const tarefa = await criarTarefaPrioritaria(req.body || {});
+    return res.status(201).json({
+      mensagem: 'Tarefa prioritaria cadastrada com sucesso.',
+      tarefa
+    });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ erro: error.message });
+    }
+    console.error('Erro ao cadastrar tarefa prioritaria:', error.message);
+    return res.status(500).json({ erro: 'Erro interno ao cadastrar tarefa prioritaria.' });
+  }
+});
+
+app.put('/api/dashboard/home/tarefas/:id', exigirAutenticacao, async (req, res) => {
+  try {
+    const tarefa = await atualizarTarefaPrioritaria(req.params.id, req.body || {});
+    return res.json({
+      mensagem: 'Tarefa prioritaria atualizada com sucesso.',
+      tarefa
+    });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ erro: error.message });
+    }
+    console.error('Erro ao atualizar tarefa prioritaria:', error.message);
+    return res.status(500).json({ erro: 'Erro interno ao atualizar tarefa prioritaria.' });
+  }
+});
+
+app.delete('/api/dashboard/home/tarefas/:id', exigirAutenticacao, async (req, res) => {
+  try {
+    await removerTarefaPrioritaria(req.params.id);
+    return res.json({ mensagem: 'Tarefa prioritaria removida com sucesso.' });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({ erro: error.message });
+    }
+    console.error('Erro ao remover tarefa prioritaria:', error.message);
+    return res.status(500).json({ erro: 'Erro interno ao remover tarefa prioritaria.' });
   }
 });
 

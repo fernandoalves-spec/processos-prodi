@@ -175,26 +175,6 @@ function montarSnapshot(rows, filtros) {
   const scoreTempo = Math.max(0, 100 - (tempoMedio / 20) * 100);
   const indiceEficiencia = Number((slaAderido * 0.45 + scoreTempo * 0.35 + pendenciasResolvidas * 0.2).toFixed(2));
 
-  const semDestino = rows.filter((row) => !String(row.destino || '').trim()).length;
-
-  const pendenciasCriticas = [
-    { id: 'pc1', titulo: 'Processos atrasados', quantidade: atrasados.length, severidade: 'alta', prioridade: 1 },
-    { id: 'pc2', titulo: 'Processos sem destino definido', quantidade: semDestino, severidade: 'media', prioridade: 2 },
-    {
-      id: 'pc3',
-      titulo: 'Processos em analise sem conclusao',
-      quantidade: rows.filter((row) => calculaStatus(row, now) === 'Em analise').length,
-      severidade: 'media',
-      prioridade: 3
-    }
-  ];
-
-  const tarefasPrioritarias = [
-    { id: 'tp1', titulo: 'Revisao de politicas institucionais', status: 'em_andamento', responsavel: 'Gestao PRODI', prazo: null },
-    { id: 'tp2', titulo: 'Auditoria interna de fluxos', status: 'nao_iniciada', responsavel: 'Comissao Interna', prazo: null },
-    { id: 'tp3', titulo: 'Planejamento estrategico consolidado', status: 'concluida', responsavel: 'Coordenacao de Planejamento', prazo: null }
-  ];
-
   return {
     filtrosAplicados: filtros,
     kpis: {
@@ -214,8 +194,8 @@ function montarSnapshot(rows, filtros) {
       }
     },
     evolucao,
-    pendenciasCriticas,
-    tarefasPrioritarias
+    pendenciasCriticas: [],
+    tarefasPrioritarias: []
   };
 }
 
@@ -245,7 +225,46 @@ async function buscarRowsBase() {
 async function obterDashboardHome(filtros) {
   const rows = await buscarRowsBase();
   const filtrados = aplicaFiltros(rows, filtros);
-  return montarSnapshot(filtrados, filtros);
+  const snapshot = montarSnapshot(filtrados, filtros);
+
+  const [pendencias, tarefas] = await Promise.all([
+    pool.query(
+      `
+        SELECT id, titulo, quantidade, severidade, prioridade
+        FROM pendencias_criticas
+        WHERE ativo = TRUE
+        ORDER BY prioridade ASC, id ASC
+      `
+    ),
+    pool.query(
+      `
+        SELECT id, titulo, status, responsavel, prazo, prioridade
+        FROM tarefas_prioritarias
+        WHERE ativo = TRUE
+        ORDER BY prioridade ASC, id ASC
+      `
+    )
+  ]);
+
+  snapshot.pendenciasCriticas = pendencias.rows.map((item) => ({
+    id: `pc_${item.id}`,
+    titulo: item.titulo,
+    quantidade: item.quantidade,
+    severidade: item.severidade,
+    prioridade: item.prioridade
+  }));
+
+  snapshot.tarefasPrioritarias = tarefas.rows.map((item) => ({
+    id: `tp_${item.id}`,
+    titulo: item.titulo,
+    status: item.status,
+    responsavel: item.responsavel,
+    prazo: item.prazo
+      ? new Date(item.prazo).toISOString().slice(0, 10)
+      : null
+  }));
+
+  return snapshot;
 }
 
 async function obterDashboardHomeOptions() {
