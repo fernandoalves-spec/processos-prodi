@@ -2,6 +2,21 @@ const pool = require('../db');
 
 const STATUS_CONCLUIDOS = new Set(['concluido', 'finalizado']);
 const STATUS_INATIVOS = new Set(['concluido', 'finalizado', 'cancelado', 'arquivado']);
+const CAMPUS_OFICIAIS = [
+  { sigla: 'AB', nome: 'Amambaí' },
+  { sigla: 'AQ', nome: 'Aquidauana' },
+  { sigla: 'CB', nome: 'Corumbá' },
+  { sigla: 'CG', nome: 'Campo Grande' },
+  { sigla: 'CX', nome: 'Coxim' },
+  { sigla: 'DR', nome: 'Dourados' },
+  { sigla: 'JD', nome: 'Jardim' },
+  { sigla: 'NA', nome: 'Nova Andradina' },
+  { sigla: 'NV', nome: 'Naviraí' },
+  { sigla: 'PB', nome: 'Paranaíba' },
+  { sigla: 'PP', nome: 'Ponta Porã' },
+  { sigla: 'RT', nome: 'Reitoria' },
+  { sigla: 'TL', nome: 'Três Lagoas' }
+];
 
 function toDate(value) {
   if (!value) return null;
@@ -38,9 +53,29 @@ function getSetor(row) {
   return normalizarTexto(row.destino || row.origem);
 }
 
+function normalizarComparacao(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
+function getCampusLabel(sigla, nome) {
+  return `${sigla} - ${nome}`;
+}
+
 function getCampus(row) {
-  // Fallback atual: origem. Pode migrar para coluna campus quando existir.
-  return normalizarTexto(row.origem);
+  const origem = normalizarComparacao(row.origem);
+
+  for (const campus of CAMPUS_OFICIAIS) {
+    const sigla = normalizarComparacao(campus.sigla);
+    const nome = normalizarComparacao(campus.nome);
+    if (origem === sigla || origem === nome || origem.includes(`${sigla} -`) || origem.includes(nome)) {
+      return getCampusLabel(campus.sigla, campus.nome);
+    }
+  }
+
+  return getCampusLabel('RT', 'Reitoria');
 }
 
 function getTipo(row) {
@@ -271,7 +306,7 @@ async function obterDashboardHomeOptions() {
   const rows = await buscarRowsBase();
   const uniq = (arr) => [...new Set(arr)].sort((a, b) => a.localeCompare(b));
   return {
-    campus: uniq(rows.map(getCampus)),
+    campus: CAMPUS_OFICIAIS.map((campus) => getCampusLabel(campus.sigla, campus.nome)),
     setores: uniq(rows.map(getSetor)),
     tipos: uniq(rows.map(getTipo)),
     status: uniq(rows.map((row) => normalizarTexto(row.status))),
