@@ -6,8 +6,11 @@
   "scripts": {
     "init-db": "node scripts/init-db.js",
     "import-planilha": "node scripts/importar-processos.js",
-    "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "build:frontend": "vite build",
+    "build": "npm run build:frontend",
+    "start": "npm run build:frontend && node src/server.js",
+    "dev": "nodemon src/server.js",
+    "dev:frontend": "vite"
   },
   "keywords": [
     "processos",
@@ -22,9 +25,18 @@
     "csv-parse": "^6.2.1",
     "dotenv": "^17.4.2",
     "express": "^5.1.0",
-    "pg": "^8.20.0"
+    "pg": "^8.20.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.30.1",
+    "recharts": "^2.15.4"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "@types/react": "^18.3.20",
+    "@types/react-dom": "^18.3.6",
+    "@vitejs/plugin-react": "^4.4.1",
+    "nodemon": "^3.1.10",
+    "typescript": "^5.8.3",
+    "vite": "^5.4.19"
   }
 }

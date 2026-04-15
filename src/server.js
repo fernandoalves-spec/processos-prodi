@@ -11,6 +11,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 const SESSION_COOKIE_NAME = 'prodi_sid';
 const SESSION_HOURS = 8;
+const CLIENT_DIST_DIR = path.join(__dirname, '..', 'dist', 'client');
 
 const PERFIL_NOME_POR_ID = PERFIS.reduce((acc, item) => {
   acc[item.id] = item.nome;
@@ -21,7 +22,7 @@ const oauthEstados = new Map();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, '..', 'public'), { index: false }));
+app.use(express.static(CLIENT_DIST_DIR, { index: false }));
 
 function normalizarEmail(email) {
   return String(email || '').trim().toLowerCase();
@@ -1359,24 +1360,8 @@ app.put('/api/processos/:id', exigirAutenticacao, async (req, res) => {
   }
 });
 
-app.get('/usuarios', exigirAutenticacao, (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'public', 'usuarios.html'));
-});
-
-app.get('/setores', exigirAutenticacao, (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'public', 'setores.html'));
-});
-
-app.get('/processos', exigirAutenticacao, (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'public', 'processos.html'));
-});
-
-app.get('/', (req, res) => {
-  return res.redirect('/dashboard');
-});
-
-app.get('/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+app.get(['/', '/dashboard', '/processos', '/setores', '/usuarios'], (req, res) => {
+  res.sendFile(path.join(CLIENT_DIST_DIR, 'index.html'));
 });
 
 function esperar(ms) {
