@@ -9,21 +9,13 @@ const STATUS_OFICIAIS = [
   'Finalizado',
   'Em análise'
 ];
-const CAMPUS_OFICIAIS = [
-  { sigla: 'AB', nome: 'Amambaí' },
-  { sigla: 'AQ', nome: 'Aquidauana' },
-  { sigla: 'CB', nome: 'Corumbá' },
-  { sigla: 'CG', nome: 'Campo Grande' },
-  { sigla: 'CX', nome: 'Coxim' },
-  { sigla: 'DR', nome: 'Dourados' },
-  { sigla: 'JD', nome: 'Jardim' },
-  { sigla: 'NA', nome: 'Nova Andradina' },
-  { sigla: 'NV', nome: 'Naviraí' },
-  { sigla: 'PB', nome: 'Paranaíba' },
-  { sigla: 'PP', nome: 'Ponta Porã' },
-  { sigla: 'RT', nome: 'Reitoria' },
-  { sigla: 'TL', nome: 'Três Lagoas' }
-];
+
+async function buscarCampiAtivos() {
+  const resultado = await pool.query(
+    'SELECT sigla, nome FROM campi WHERE ativo = TRUE ORDER BY nome'
+  );
+  return resultado.rows;
+}
 
 function toDate(value) {
   if (!value) return null;
@@ -77,10 +69,10 @@ function getCampusLabel(sigla, nome) {
   return `${sigla} - ${nome}`;
 }
 
-function getCampus(row) {
+function getCampus(row, campiAtivos) {
   const origem = normalizarComparacao(row.origem);
 
-  for (const campus of CAMPUS_OFICIAIS) {
+  for (const campus of campiAtivos) {
     const sigla = normalizarComparacao(campus.sigla);
     const nome = normalizarComparacao(campus.nome);
     if (origem === sigla || origem === nome || origem.includes(`${sigla} -`) || origem.includes(nome)) {
@@ -88,7 +80,7 @@ function getCampus(row) {
     }
   }
 
-  return getCampusLabel('RT', 'Reitoria');
+  return normalizarTexto(row.origem, 'Nao informado');
 }
 
 function getTipo(row) {
@@ -111,11 +103,11 @@ function dentroDoPeriodo(data, filtros) {
   return true;
 }
 
-function aplicaFiltros(rows, filtros) {
+function aplicaFiltros(rows, filtros, campiAtivos) {
   return rows.filter((row) => {
     const status = normalizarTexto(row.status, '');
     if (filtros.status && normalizarStatus(status) !== normalizarStatus(filtros.status)) return false;
-    if (filtros.campus && getCampus(row) !== filtros.campus) return false;
+    if (filtros.campus && getCampus(row, campiAtivos) !== filtros.campus) return false;
     if (filtros.setor && getSetor(row) !== filtros.setor) return false;
     if (filtros.tipoProcesso && getTipo(row) !== filtros.tipoProcesso) return false;
     if (filtros.responsavel && getResponsavel(row) !== filtros.responsavel) return false;
@@ -271,8 +263,8 @@ async function buscarRowsBase() {
 }
 
 async function obterDashboardHome(filtros) {
-  const rows = await buscarRowsBase();
-  const filtrados = aplicaFiltros(rows, filtros);
+  const [rows, campiAtivos] = await Promise.all([buscarRowsBase(), buscarCampiAtivos()]);
+  const filtrados = aplicaFiltros(rows, filtros, campiAtivos);
   const snapshot = montarSnapshot(filtrados, filtros);
 
   const [pendencias, tarefas] = await Promise.all([
@@ -316,10 +308,10 @@ async function obterDashboardHome(filtros) {
 }
 
 async function obterDashboardHomeOptions() {
-  const rows = await buscarRowsBase();
+  const [rows, campiAtivos] = await Promise.all([buscarRowsBase(), buscarCampiAtivos()]);
   const uniq = (arr) => [...new Set(arr)].sort((a, b) => a.localeCompare(b));
   return {
-    campus: CAMPUS_OFICIAIS.map((campus) => getCampusLabel(campus.sigla, campus.nome)),
+    campus: campiAtivos.map((campus) => getCampusLabel(campus.sigla, campus.nome)),
     setores: uniq(rows.map(getSetor)),
     tipos: uniq(rows.map(getTipo)),
     status: STATUS_OFICIAIS,

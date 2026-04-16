@@ -29,13 +29,6 @@ export interface ProcessTypeDistribution {
   quantidade: number;
 }
 
-export interface EfficiencyConfig {
-  pesoSlaNoPrazo: number;
-  pesoTempoMedio: number;
-  pesoPendenciasResolvidas: number;
-  metaTempoDias: number;
-}
-
 export interface EfficiencySnapshot {
   indice: number;
   componentes: {
@@ -64,7 +57,7 @@ export interface PriorityTaskItem {
   titulo: string;
   status: TaskStatus;
   responsavel?: string;
-  prazo?: string;
+  prazo?: string | null;
 }
 
 export interface DashboardSnapshot {
@@ -76,20 +69,4 @@ export interface DashboardSnapshot {
   evolucao: ProcessEvolutionSeries[];
   pendenciasCriticas: CriticalPendingItem[];
   tarefasPrioritarias: PriorityTaskItem[];
-}
-
-export interface ProcessRecord {
-  id: string;
-  numeroProcesso: string;
-  tipoProcesso: string;
-  setorOrigem: string;
-  setorAtual: string;
-  campus: string;
-  responsavel: string;
-  status: string;
-  dataAbertura: string;
-  dataConclusao?: string;
-  prazoDias: number;
-  dataLimite: string;
-  prioridade: 'alta' | 'media' | 'baixa';
 }

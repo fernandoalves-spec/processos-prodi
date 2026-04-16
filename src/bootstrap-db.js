@@ -1,6 +1,6 @@
 const pool = require('./db');
 
-const MASTER_EMAIL = 'fernando.alves@ifms.edu.br';
+const MASTER_EMAIL = process.env.MASTER_EMAIL || 'fernando.alves@ifms.edu.br';
 
 const PERFIS = [
   {
@@ -249,6 +249,7 @@ async function initDatabase() {
       );
     }
 
+    const masterNome = process.env.MASTER_NOME || 'Administrador Master';
     await client.query(
       `
         INSERT INTO usuarios (nome, email, perfil, ativo, origem)
@@ -259,7 +260,7 @@ async function initDatabase() {
               ativo = TRUE,
               atualizado_em = NOW()
       `,
-      ['Fernando Alves', MASTER_EMAIL, 'ADMIN_MASTER']
+      [masterNome, MASTER_EMAIL, 'ADMIN_MASTER']
     );
 
     const qtdPendencias = await client.query('SELECT COUNT(*)::int AS total FROM pendencias_criticas');
