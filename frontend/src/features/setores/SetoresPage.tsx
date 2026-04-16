@@ -179,7 +179,14 @@ export function SetoresPage({ enabled }: SetoresPageProps) {
 
     try {
       const resultado = await importarSetoresPlanilha(arquivo);
-      setInfo(`${resultado.mensagem} Inseridos: ${resultado.resumo.inseridos}. Atualizados: ${resultado.resumo.atualizados}.`);
+      setInfo(
+        `${resultado.mensagem} ` +
+        `Processadas: ${resultado.resumo.processadas}/${resultado.resumo.totalLinhas}. ` +
+        `Inseridos: ${resultado.resumo.inseridos}. ` +
+        `Atualizados: ${resultado.resumo.atualizados}. ` +
+        `Ignorados: ${resultado.resumo.ignorados}. ` +
+        `Sem campus: ${resultado.resumo.semCampusVinculado}.`
+      );
       const lista = await listarSetoresTodos();
       setSetores(lista);
     } catch (error) {
