@@ -200,71 +200,80 @@ export function SetoresPage({ enabled }: SetoresPageProps) {
         <p className="muted">Autentique-se para visualizar e gerenciar setores.</p>
       ) : (
         <>
-          <form className="setores-form setores-form-campus" onSubmit={submitNovoSetor}>
-            <label>
-              Nome do setor
-              <input
-                type="text"
-                value={nomeNovoSetor}
-                onChange={(event) => setNomeNovoSetor(event.target.value)}
-                placeholder="Ex.: Diretoria de Gestao de Pessoas"
-                disabled={!podeGerir || salvando}
-              />
-            </label>
-            <label>
-              Sigla
-              <input
-                type="text"
-                value={siglaNovoSetor}
-                onChange={(event) => setSiglaNovoSetor(event.target.value.toUpperCase())}
-                placeholder="Ex.: DIGEP"
-                disabled={!podeGerir || salvando}
-              />
-            </label>
-            <label>
-              Campus
-              <select
-                value={campusNovoSetor}
-                onChange={(event) => setCampusNovoSetor(event.target.value)}
-                disabled={!podeGerir || salvando}
-              >
-                <option value="">Selecione</option>
-                {campi.map((campus) => (
-                  <option key={campus.id} value={campus.id}>
-                    {campus.sigla} - {campus.nome}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button className="btn-mini setores-submit" type="submit" disabled={!podeGerir || salvando}>
-              {salvando ? 'Cadastrando...' : 'Cadastrar setor'}
-            </button>
-          </form>
-
-          <div className="setores-upload-row">
-            <label className="setores-upload-btn">
-              {importando ? 'Importando planilha...' : 'Importar planilha de setores'}
-              <input
-                type="file"
-                accept=".xlsx,.csv"
-                onChange={handleImportarPlanilha}
-                disabled={!podeGerir || importando}
-              />
-            </label>
-            <span className="muted">Colunas obrigatorias: Setor Nome, Setor Sigla, Campus, Campus Sigla.</span>
+          <div className="setores-bloco">
+            <form className="setores-form setores-form-campus" onSubmit={submitNovoSetor}>
+              <label>
+                Nome do setor
+                <input
+                  type="text"
+                  value={nomeNovoSetor}
+                  onChange={(event) => setNomeNovoSetor(event.target.value)}
+                  placeholder="Ex.: Diretoria de Gestao de Pessoas"
+                  disabled={!podeGerir || salvando}
+                />
+              </label>
+              <label>
+                Sigla
+                <input
+                  type="text"
+                  value={siglaNovoSetor}
+                  onChange={(event) => setSiglaNovoSetor(event.target.value.toUpperCase())}
+                  placeholder="Ex.: DIGEP"
+                  disabled={!podeGerir || salvando}
+                />
+              </label>
+              <label>
+                Campus
+                <select
+                  value={campusNovoSetor}
+                  onChange={(event) => setCampusNovoSetor(event.target.value)}
+                  disabled={!podeGerir || salvando}
+                >
+                  <option value="">Selecione</option>
+                  {campi.map((campus) => (
+                    <option key={campus.id} value={campus.id}>
+                      {campus.sigla} - {campus.nome}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button className="btn-mini setores-submit" type="submit" disabled={!podeGerir || salvando}>
+                {salvando ? 'Cadastrando...' : 'Cadastrar setor'}
+              </button>
+            </form>
           </div>
 
-          <div className="setores-filtros">
-            <label>
-              Buscar setor
-              <input
-                type="text"
-                value={busca}
-                onChange={(event) => setBusca(event.target.value)}
-                placeholder="Nome, sigla ou campus"
-              />
-            </label>
-            <span className="muted">{setoresFiltrados.length} setor(es)</span>
+          <div className="setores-bloco">
+            <div className="setores-upload-row">
+              <label className="setores-upload-btn">
+                {importando ? 'Importando planilha...' : 'Importar planilha de setores'}
+                <input
+                  type="file"
+                  accept=".xlsx,.csv"
+                  onChange={handleImportarPlanilha}
+                  disabled={!podeGerir || importando}
+                />
+              </label>
+              <a className="setores-template-btn" href="/modelo-setores-preenchido.csv" download>
+                Baixar modelo pre-preenchido
+              </a>
+              <span className="muted">Colunas obrigatorias: Setor Nome, Setor Sigla, Campus, Campus Sigla.</span>
+            </div>
+          </div>
+
+          <div className="setores-bloco">
+            <div className="setores-filtros">
+              <label>
+                Buscar setor
+                <input
+                  type="text"
+                  value={busca}
+                  onChange={(event) => setBusca(event.target.value)}
+                  placeholder="Nome, sigla ou campus"
+                />
+              </label>
+              <span className="muted">{setoresFiltrados.length} setor(es)</span>
+            </div>
           </div>
 
           {erro ? <div className="error">{erro}</div> : null}
