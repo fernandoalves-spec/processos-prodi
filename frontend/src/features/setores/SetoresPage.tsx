@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { listarCampiAtivos } from '../../services/campiService';
+import { listarCampiAtivos, listarCampiTodos } from '../../services/campiService';
 import { atualizarSetor, criarSetor, importarSetoresPlanilha, listarSetoresAtivos, listarSetoresTodos } from '../../services/setoresService';
 import { CampusItem } from '../../types/campi';
 import { SetorItem } from '../../types/setores';
@@ -47,8 +47,8 @@ export function SetoresPage({ enabled }: SetoresPageProps) {
       setErro(null);
       setInfo(null);
       try {
-        const [campiAtivos, lista] = await Promise.all([listarCampiAtivos(), listarSetoresTodos()]);
-        setCampi(campiAtivos);
+        const [campiLista, lista] = await Promise.all([listarCampiTodos(), listarSetoresTodos()]);
+        setCampi(campiLista);
         setSetores(lista);
         setPodeGerir(true);
       } catch (error) {
