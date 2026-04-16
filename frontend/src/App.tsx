@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppLayout } from './components/AppLayout';
 import { PlaceholderPage } from './components/PlaceholderPage';
+import { CampiPage } from './features/campi/CampiPage';
 import { DashboardPage } from './features/dashboard/DashboardPage';
 import { GutPage } from './features/gut/GutPage';
 import { ProcessosPage } from './features/processos/ProcessosPage';
@@ -66,6 +67,7 @@ export function App() {
             />
           }
         />
+        <Route path="/campi" element={<CampiPage enabled={autenticado} />} />
         <Route path="/gut" element={<GutPage enabled={autenticado} isAdminMaster={perfilUsuario === 'ADMIN_MASTER'} />} />
         <Route path="/setores" element={<SetoresPage enabled={autenticado} />} />
         <Route

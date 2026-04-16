@@ -1,11 +1,9 @@
-export interface SetorItem {
+export interface CampusItem {
   id: number;
   nome: string;
   sigla: string;
   ativo: boolean;
-  campusId?: number | null;
-  campusNome?: string | null;
-  campusSigla?: string | null;
   criadoEm?: string | null;
   atualizadoEm?: string | null;
 }
+

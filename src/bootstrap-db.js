@@ -59,6 +59,21 @@ async function initDatabase() {
     await client.query(`ALTER TABLE usuarios ADD COLUMN IF NOT EXISTS ultimo_login_em TIMESTAMPTZ`);
 
     await client.query(`
+      CREATE TABLE IF NOT EXISTS campi (
+        id SERIAL PRIMARY KEY,
+        nome TEXT NOT NULL,
+        sigla TEXT NOT NULL,
+        ativo BOOLEAN NOT NULL DEFAULT TRUE,
+        criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        atualizado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `);
+
+    await client.query(`ALTER TABLE campi ADD COLUMN IF NOT EXISTS ativo BOOLEAN NOT NULL DEFAULT TRUE`);
+    await client.query(`ALTER TABLE campi ADD COLUMN IF NOT EXISTS criado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()`);
+    await client.query(`ALTER TABLE campi ADD COLUMN IF NOT EXISTS atualizado_em TIMESTAMPTZ NOT NULL DEFAULT NOW()`);
+
+    await client.query(`
       CREATE TABLE IF NOT EXISTS setores (
         id SERIAL PRIMARY KEY,
         nome TEXT NOT NULL,
@@ -149,6 +164,23 @@ async function initDatabase() {
     await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS setor_destino_id INTEGER`);
     await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS distribuido_em TIMESTAMPTZ`);
     await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS distribuido_por TEXT`);
+    await client.query(`ALTER TABLE setores ADD COLUMN IF NOT EXISTS campus_id INTEGER`);
+    await client.query(`
+      DO $$
+      BEGIN
+        IF NOT EXISTS (
+          SELECT 1
+          FROM pg_constraint
+          WHERE conname = 'fk_setores_campus'
+        ) THEN
+          ALTER TABLE setores
+          ADD CONSTRAINT fk_setores_campus
+          FOREIGN KEY (campus_id)
+          REFERENCES campi(id);
+        END IF;
+      END
+      $$;
+    `);
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS sessoes (
@@ -200,6 +232,8 @@ async function initDatabase() {
     await client.query('CREATE INDEX IF NOT EXISTS idx_tarefas_prioritarias_ativo_prioridade ON tarefas_prioritarias(ativo, prioridade)');
     await client.query('CREATE UNIQUE INDEX IF NOT EXISTS uq_setores_sigla_lower ON setores ((LOWER(sigla)))');
     await client.query('CREATE UNIQUE INDEX IF NOT EXISTS uq_setores_nome_lower ON setores ((LOWER(nome)))');
+    await client.query('CREATE UNIQUE INDEX IF NOT EXISTS uq_campi_sigla_lower ON campi ((LOWER(sigla)))');
+    await client.query('CREATE UNIQUE INDEX IF NOT EXISTS uq_campi_nome_lower ON campi ((LOWER(nome)))');
 
     for (const perfil of PERFIS) {
       await client.query(

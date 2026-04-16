@@ -35,6 +35,7 @@ export function AppLayout({ children, autenticado, usuarioLabel, onLogout }: App
           <NavLink to="/dashboard">Dashboard</NavLink>
           <NavLink to="/processos">Processos</NavLink>
           <NavLink to="/gut">Priorizacao GUT</NavLink>
+          <NavLink to="/campi">Campi</NavLink>
           <NavLink to="/setores">Setores</NavLink>
           <NavLink to="/usuarios">Usuarios</NavLink>
         </nav>

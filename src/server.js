@@ -1,6 +1,8 @@
 const crypto = require('crypto');
 const express = require('express');
+const multer = require('multer');
 const path = require('path');
+const XLSX = require('xlsx');
 require('dotenv').config();
 
 const pool = require('./db');
@@ -30,6 +32,7 @@ const PERFIL_NOME_POR_ID = PERFIS.reduce((acc, item) => {
 }, {});
 
 const oauthEstados = new Map();
+const uploadMemoria = multer({ storage: multer.memoryStorage() });
 const GUT_GRAVIDADE_PONTOS = {
   'Nao e Grave': 1,
   'Pouco Grave': 2,
@@ -147,8 +150,22 @@ function respostaSetor(setor) {
     nome: setor.nome,
     sigla: setor.sigla,
     ativo: Boolean(setor.ativo),
+    campusId: setor.campus_id ? Number(setor.campus_id) : null,
+    campusNome: setor.campus_nome || null,
+    campusSigla: setor.campus_sigla || null,
     criadoEm: setor.criado_em,
     atualizadoEm: setor.atualizado_em
+  };
+}
+
+function respostaCampus(campus) {
+  return {
+    id: Number(campus.id),
+    nome: campus.nome,
+    sigla: campus.sigla,
+    ativo: Boolean(campus.ativo),
+    criadoEm: campus.criado_em,
+    atualizadoEm: campus.atualizado_em
   };
 }
 
@@ -178,6 +195,31 @@ function validarOpcaoGut(valor, mapaPontuacao, rotuloCampo) {
   }
 
   return { opcao: texto, pontos: mapaPontuacao[texto] };
+}
+
+function normalizarChaveImportacao(texto) {
+  return String(texto || '')
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/\s+/g, ' ');
+}
+
+function parseLinhasPlanilhaSetores(file) {
+  if (!file || !file.buffer) {
+    throw new Error('Arquivo da planilha nao informado.');
+  }
+
+  const workbook = XLSX.read(file.buffer, { type: 'buffer' });
+  const sheetName = workbook.SheetNames[0];
+  if (!sheetName) throw new Error('Planilha sem abas para leitura.');
+
+  const sheet = workbook.Sheets[sheetName];
+  const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+  if (!rows.length) throw new Error('Planilha sem linhas para importacao.');
+
+  return rows;
 }
 
 async function obterUsuarioPorSessao(req) {
@@ -1060,10 +1102,20 @@ app.get('/api/setores', exigirAutenticacao, async (req, res) => {
   try {
     const resultado = await pool.query(
       `
-        SELECT id, nome, sigla, ativo, criado_em, atualizado_em
-        FROM setores
-        WHERE ativo = TRUE
-        ORDER BY nome
+        SELECT
+          s.id,
+          s.nome,
+          s.sigla,
+          s.ativo,
+          s.campus_id,
+          c.nome AS campus_nome,
+          c.sigla AS campus_sigla,
+          s.criado_em,
+          s.atualizado_em
+        FROM setores s
+        LEFT JOIN campi c ON c.id = s.campus_id
+        WHERE s.ativo = TRUE
+        ORDER BY s.nome
       `
     );
 
@@ -1078,9 +1130,19 @@ app.get('/api/setores/todos', exigirAutenticacao, exigirMaster, async (req, res)
   try {
     const resultado = await pool.query(
       `
-        SELECT id, nome, sigla, ativo, criado_em, atualizado_em
-        FROM setores
-        ORDER BY nome
+        SELECT
+          s.id,
+          s.nome,
+          s.sigla,
+          s.ativo,
+          s.campus_id,
+          c.nome AS campus_nome,
+          c.sigla AS campus_sigla,
+          s.criado_em,
+          s.atualizado_em
+        FROM setores s
+        LEFT JOIN campi c ON c.id = s.campus_id
+        ORDER BY s.nome
       `
     );
 
@@ -1094,24 +1156,52 @@ app.get('/api/setores/todos', exigirAutenticacao, exigirMaster, async (req, res)
 app.post('/api/setores', exigirAutenticacao, exigirMaster, async (req, res) => {
   const nome = normalizarTexto(req.body.nome);
   const sigla = normalizarTexto(req.body.sigla).toUpperCase();
+  const campusId = Number(req.body.campusId);
 
-  if (!nome || !sigla) {
-    return res.status(400).json({ erro: 'Informe nome e sigla para cadastrar o setor.' });
+  if (!nome || !sigla || !Number.isInteger(campusId) || campusId <= 0) {
+    return res.status(400).json({ erro: 'Informe nome, sigla e campus para cadastrar o setor.' });
   }
 
   try {
+    const campus = await pool.query('SELECT id, ativo FROM campi WHERE id = $1', [campusId]);
+    if (!campus.rowCount) {
+      return res.status(404).json({ erro: 'Campus nao encontrado.' });
+    }
+    if (!campus.rows[0].ativo) {
+      return res.status(400).json({ erro: 'Nao e possivel vincular setor a campus inativo.' });
+    }
+
     const inserido = await pool.query(
       `
-        INSERT INTO setores (nome, sigla, ativo, atualizado_em)
-        VALUES ($1, $2, TRUE, NOW())
-        RETURNING id, nome, sigla, ativo, criado_em, atualizado_em
+        INSERT INTO setores (nome, sigla, ativo, campus_id, atualizado_em)
+        VALUES ($1, $2, TRUE, $3, NOW())
+        RETURNING id
       `,
-      [nome, sigla]
+      [nome, sigla, campusId]
+    );
+
+    const detalhado = await pool.query(
+      `
+        SELECT
+          s.id,
+          s.nome,
+          s.sigla,
+          s.ativo,
+          s.campus_id,
+          c.nome AS campus_nome,
+          c.sigla AS campus_sigla,
+          s.criado_em,
+          s.atualizado_em
+        FROM setores s
+        LEFT JOIN campi c ON c.id = s.campus_id
+        WHERE s.id = $1
+      `,
+      [inserido.rows[0].id]
     );
 
     res.status(201).json({
       mensagem: 'Setor cadastrado com sucesso.',
-      setor: respostaSetor(inserido.rows[0])
+      setor: respostaSetor(detalhado.rows[0])
     });
   } catch (error) {
     if (error.code === '23505') {
@@ -1132,7 +1222,7 @@ app.put('/api/setores/:id', exigirAutenticacao, exigirMaster, async (req, res) =
 
   try {
     const atual = await pool.query(
-      'SELECT id, nome, sigla, ativo, criado_em, atualizado_em FROM setores WHERE id = $1',
+      'SELECT id, nome, sigla, ativo, campus_id, criado_em, atualizado_em FROM setores WHERE id = $1',
       [id]
     );
 
@@ -1144,9 +1234,21 @@ app.put('/api/setores/:id', exigirAutenticacao, exigirMaster, async (req, res) =
     const nome = req.body.nome !== undefined ? normalizarTexto(req.body.nome) : setor.nome;
     const sigla = req.body.sigla !== undefined ? normalizarTexto(req.body.sigla).toUpperCase() : setor.sigla;
     const ativo = req.body.ativo !== undefined ? Boolean(req.body.ativo) : Boolean(setor.ativo);
+    const campusId =
+      req.body.campusId !== undefined && req.body.campusId !== null && req.body.campusId !== ''
+        ? Number(req.body.campusId)
+        : setor.campus_id;
 
-    if (!nome || !sigla) {
-      return res.status(400).json({ erro: 'Nome e sigla do setor sao obrigatorios.' });
+    if (!nome || !sigla || !Number.isInteger(campusId) || campusId <= 0) {
+      return res.status(400).json({ erro: 'Nome, sigla e campus do setor sao obrigatorios.' });
+    }
+
+    const campus = await pool.query('SELECT id, ativo FROM campi WHERE id = $1', [campusId]);
+    if (!campus.rowCount) {
+      return res.status(404).json({ erro: 'Campus nao encontrado.' });
+    }
+    if (!campus.rows[0].ativo) {
+      return res.status(400).json({ erro: 'Nao e possivel vincular setor a campus inativo.' });
     }
 
     const atualizado = await pool.query(
@@ -1155,16 +1257,36 @@ app.put('/api/setores/:id', exigirAutenticacao, exigirMaster, async (req, res) =
         SET nome = $1,
             sigla = $2,
             ativo = $3,
+            campus_id = $4,
             atualizado_em = NOW()
-        WHERE id = $4
-        RETURNING id, nome, sigla, ativo, criado_em, atualizado_em
+        WHERE id = $5
+        RETURNING id
       `,
-      [nome, sigla, ativo, id]
+      [nome, sigla, ativo, campusId, id]
+    );
+
+    const detalhado = await pool.query(
+      `
+        SELECT
+          s.id,
+          s.nome,
+          s.sigla,
+          s.ativo,
+          s.campus_id,
+          c.nome AS campus_nome,
+          c.sigla AS campus_sigla,
+          s.criado_em,
+          s.atualizado_em
+        FROM setores s
+        LEFT JOIN campi c ON c.id = s.campus_id
+        WHERE s.id = $1
+      `,
+      [atualizado.rows[0].id]
     );
 
     res.json({
       mensagem: 'Setor atualizado com sucesso.',
-      setor: respostaSetor(atualizado.rows[0])
+      setor: respostaSetor(detalhado.rows[0])
     });
   } catch (error) {
     if (error.code === '23505') {
@@ -1239,6 +1361,268 @@ app.post('/api/setores/importar', exigirAutenticacao, exigirMaster, async (req, 
     return res.status(500).json({ erro: 'Erro interno ao importar setores.' });
   } finally {
     client.release();
+  }
+});
+
+app.post('/api/setores/importar-planilha', exigirAutenticacao, exigirMaster, uploadMemoria.single('arquivo'), async (req, res) => {
+  let linhas;
+  try {
+    linhas = parseLinhasPlanilhaSetores(req.file);
+  } catch (error) {
+    return res.status(400).json({ erro: error.message || 'Falha ao ler planilha enviada.' });
+  }
+
+  const required = {
+    setorNome: ['setor nome'],
+    setorSigla: ['setor sigla'],
+    campusNome: ['campus'],
+    campusSigla: ['campus sigla']
+  };
+
+  const chavesOriginais = Object.keys(linhas[0] || {});
+  const mapaCabecalho = {};
+  for (const chave of chavesOriginais) {
+    mapaCabecalho[normalizarChaveImportacao(chave)] = chave;
+  }
+
+  const faltantes = Object.entries(required)
+    .filter(([, aliases]) => !aliases.some((alias) => Object.prototype.hasOwnProperty.call(mapaCabecalho, alias)))
+    .map(([key]) => key);
+
+  if (faltantes.length) {
+    return res.status(400).json({
+      erro: `Cabecalhos obrigatorios ausentes na planilha: ${faltantes.join(', ')}.`
+    });
+  }
+
+  const keySetorNome = mapaCabecalho['setor nome'];
+  const keySetorSigla = mapaCabecalho['setor sigla'];
+  const keyCampusNome = mapaCabecalho['campus'];
+  const keyCampusSigla = mapaCabecalho['campus sigla'];
+
+  const dados = linhas.map((row, index) => ({
+    linha: index + 2,
+    setorNome: normalizarTexto(row[keySetorNome]),
+    setorSigla: normalizarTexto(row[keySetorSigla]).toUpperCase(),
+    campusNome: normalizarTexto(row[keyCampusNome]),
+    campusSigla: normalizarTexto(row[keyCampusSigla]).toUpperCase()
+  }));
+
+  const client = await pool.connect();
+  try {
+    const campi = await client.query('SELECT id, nome, sigla, ativo FROM campi');
+    const mapCampusSigla = new Map(campi.rows.map((c) => [normalizarTexto(c.sigla).toUpperCase(), c]));
+    const mapCampusNome = new Map(campi.rows.map((c) => [normalizarTexto(c.nome).toLowerCase(), c]));
+
+    const inconsistencias = [];
+    const preparados = [];
+
+    for (const item of dados) {
+      if (!item.setorNome || !item.setorSigla || !item.campusNome || !item.campusSigla) {
+        inconsistencias.push({
+          linha: item.linha,
+          erro: 'Campos obrigatorios vazios (Setor Nome, Setor Sigla, Campus, Campus Sigla).'
+        });
+        continue;
+      }
+
+      const campusPorSigla = mapCampusSigla.get(item.campusSigla);
+      const campusPorNome = mapCampusNome.get(item.campusNome.toLowerCase());
+
+      if (!campusPorSigla && !campusPorNome) {
+        inconsistencias.push({
+          linha: item.linha,
+          erro: `Campus nao cadastrado: ${item.campusSigla} / ${item.campusNome}.`
+        });
+        continue;
+      }
+
+      if (campusPorSigla && campusPorNome && campusPorSigla.id !== campusPorNome.id) {
+        inconsistencias.push({
+          linha: item.linha,
+          erro: `Campus Sigla e Campus Nome divergem (${item.campusSigla} x ${item.campusNome}).`
+        });
+        continue;
+      }
+
+      const campus = campusPorSigla || campusPorNome;
+      if (!campus.ativo) {
+        inconsistencias.push({
+          linha: item.linha,
+          erro: `Campus inativo (${campus.sigla} - ${campus.nome}).`
+        });
+        continue;
+      }
+
+      preparados.push({
+        nome: item.setorNome,
+        sigla: item.setorSigla,
+        campusId: campus.id
+      });
+    }
+
+    if (inconsistencias.length) {
+      return res.status(400).json({
+        erro: 'Falha na validacao da planilha. Corrija as linhas informadas e tente novamente.',
+        inconsistencias
+      });
+    }
+
+    await client.query('BEGIN');
+    let inseridos = 0;
+    let atualizados = 0;
+
+    for (const item of preparados) {
+      const resultado = await client.query(
+        `
+          INSERT INTO setores (nome, sigla, ativo, campus_id, atualizado_em)
+          VALUES ($1, $2, TRUE, $3, NOW())
+          ON CONFLICT ((LOWER(sigla))) DO UPDATE
+            SET nome = EXCLUDED.nome,
+                sigla = EXCLUDED.sigla,
+                campus_id = EXCLUDED.campus_id,
+                ativo = TRUE,
+                atualizado_em = NOW()
+          RETURNING (xmax = 0) AS inserido
+        `,
+        [item.nome, item.sigla, item.campusId]
+      );
+
+      if (resultado.rows[0].inserido) inseridos += 1;
+      else atualizados += 1;
+    }
+
+    await client.query('COMMIT');
+    return res.json({
+      mensagem: 'Importacao de planilha de setores concluida com sucesso.',
+      resumo: {
+        totalLinhas: preparados.length,
+        inseridos,
+        atualizados
+      }
+    });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    console.error('Erro ao importar planilha de setores:', error.message);
+    return res.status(500).json({ erro: 'Erro interno ao importar planilha de setores.' });
+  } finally {
+    client.release();
+  }
+});
+
+app.get('/api/campi', exigirAutenticacao, async (req, res) => {
+  try {
+    const resultado = await pool.query(
+      `
+        SELECT id, nome, sigla, ativo, criado_em, atualizado_em
+        FROM campi
+        WHERE ativo = TRUE
+        ORDER BY nome
+      `
+    );
+
+    res.json(resultado.rows.map(respostaCampus));
+  } catch (error) {
+    console.error('Erro ao listar campi ativos:', error.message);
+    res.status(500).json({ erro: 'Erro interno ao listar campi.' });
+  }
+});
+
+app.get('/api/campi/todos', exigirAutenticacao, exigirMaster, async (req, res) => {
+  try {
+    const resultado = await pool.query(
+      `
+        SELECT id, nome, sigla, ativo, criado_em, atualizado_em
+        FROM campi
+        ORDER BY nome
+      `
+    );
+
+    res.json(resultado.rows.map(respostaCampus));
+  } catch (error) {
+    console.error('Erro ao listar todos os campi:', error.message);
+    res.status(500).json({ erro: 'Erro interno ao listar campi.' });
+  }
+});
+
+app.post('/api/campi', exigirAutenticacao, exigirMaster, async (req, res) => {
+  const nome = normalizarTexto(req.body.nome);
+  const sigla = normalizarTexto(req.body.sigla).toUpperCase();
+
+  if (!nome || !sigla) {
+    return res.status(400).json({ erro: 'Informe nome e sigla para cadastrar o campus.' });
+  }
+
+  try {
+    const inserido = await pool.query(
+      `
+        INSERT INTO campi (nome, sigla, ativo, atualizado_em)
+        VALUES ($1, $2, TRUE, NOW())
+        RETURNING id, nome, sigla, ativo, criado_em, atualizado_em
+      `,
+      [nome, sigla]
+    );
+
+    res.status(201).json({
+      mensagem: 'Campus cadastrado com sucesso.',
+      campus: respostaCampus(inserido.rows[0])
+    });
+  } catch (error) {
+    if (error.code === '23505') {
+      return res.status(409).json({ erro: 'Ja existe campus com este nome ou sigla.' });
+    }
+    console.error('Erro ao cadastrar campus:', error.message);
+    return res.status(500).json({ erro: 'Erro interno ao cadastrar campus.' });
+  }
+});
+
+app.put('/api/campi/:id', exigirAutenticacao, exigirMaster, async (req, res) => {
+  const id = Number(req.params.id);
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({ erro: 'Id de campus invalido.' });
+  }
+
+  try {
+    const atual = await pool.query(
+      'SELECT id, nome, sigla, ativo, criado_em, atualizado_em FROM campi WHERE id = $1',
+      [id]
+    );
+    if (!atual.rowCount) {
+      return res.status(404).json({ erro: 'Campus nao encontrado.' });
+    }
+
+    const campus = atual.rows[0];
+    const nome = req.body.nome !== undefined ? normalizarTexto(req.body.nome) : campus.nome;
+    const sigla = req.body.sigla !== undefined ? normalizarTexto(req.body.sigla).toUpperCase() : campus.sigla;
+    const ativo = req.body.ativo !== undefined ? Boolean(req.body.ativo) : Boolean(campus.ativo);
+
+    if (!nome || !sigla) {
+      return res.status(400).json({ erro: 'Nome e sigla do campus sao obrigatorios.' });
+    }
+
+    const atualizado = await pool.query(
+      `
+        UPDATE campi
+        SET nome = $1,
+            sigla = $2,
+            ativo = $3,
+            atualizado_em = NOW()
+        WHERE id = $4
+        RETURNING id, nome, sigla, ativo, criado_em, atualizado_em
+      `,
+      [nome, sigla, ativo, id]
+    );
+
+    res.json({
+      mensagem: 'Campus atualizado com sucesso.',
+      campus: respostaCampus(atualizado.rows[0])
+    });
+  } catch (error) {
+    if (error.code === '23505') {
+      return res.status(409).json({ erro: 'Ja existe campus com este nome ou sigla.' });
+    }
+    console.error('Erro ao atualizar campus:', error.message);
+    return res.status(500).json({ erro: 'Erro interno ao atualizar campus.' });
   }
 });
 
@@ -1884,7 +2268,7 @@ app.put('/api/processos/:id/gut', exigirAutenticacao, exigirMaster, async (req, 
   }
 });
 
-app.get(['/', '/dashboard', '/processos', '/setores', '/usuarios', '/gut'], (req, res) => {
+app.get(['/', '/dashboard', '/processos', '/setores', '/campi', '/usuarios', '/gut'], (req, res) => {
   res.sendFile(path.join(CLIENT_DIST_DIR, 'index.html'));
 });
 

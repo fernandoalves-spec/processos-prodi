@@ -483,6 +483,17 @@ body {
   font-size: 0.9rem;
 }
 
+.setores-form select {
+  border: 1px solid #c9d6e2;
+  border-radius: 10px;
+  padding: 8px;
+  font-size: 0.9rem;
+}
+
+.setores-form-campus {
+  grid-template-columns: 2fr 180px 220px auto;
+}
+
 .setores-submit {
   background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
   color: #fff;
@@ -510,6 +521,41 @@ body {
 
 .setores-tabela {
   min-width: 720px;
+}
+
+.setores-tabela-campus {
+  min-width: 980px;
+}
+
+.setores-upload-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.setores-upload-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 10px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+  border: 1px solid #1d4ed8;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.25);
+}
+
+.setores-upload-btn:hover {
+  filter: brightness(1.04);
+}
+
+.setores-upload-btn input {
+  display: none;
 }
 
 .gut-tabela {
@@ -557,6 +603,10 @@ body {
   border: 1px solid var(--line);
   box-shadow: 0 24px 54px rgba(15, 23, 42, 0.35);
   padding: 14px;
+}
+
+.modal-card-compact {
+  width: min(640px, 100%);
 }
 
 .movimentacoes {
@@ -817,6 +867,10 @@ body {
   }
 
   .setores-form {
+    grid-template-columns: 1fr;
+  }
+
+  .setores-form-campus {
     grid-template-columns: 1fr;
   }
 
