@@ -4,6 +4,7 @@ import { AppLayout } from './components/AppLayout';
 import { PlaceholderPage } from './components/PlaceholderPage';
 import { DashboardPage } from './features/dashboard/DashboardPage';
 import { ProcessosPage } from './features/processos/ProcessosPage';
+import { SetoresPage } from './features/setores/SetoresPage';
 import { getSessaoUsuario, logout } from './services/authService';
 
 export function App() {
@@ -52,10 +53,7 @@ export function App() {
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<DashboardPage enabled={autenticado} />} />
         <Route path="/processos" element={<ProcessosPage enabled={autenticado} />} />
-        <Route
-          path="/setores"
-          element={<PlaceholderPage titulo="Setores" descricao="Area para indicadores de desempenho e pendencias por setor." />}
-        />
+        <Route path="/setores" element={<SetoresPage enabled={autenticado} />} />
         <Route
           path="/usuarios"
           element={<PlaceholderPage titulo="Usuarios" descricao="Area para acompanhamento de desempenho por responsavel e unidade." />}
