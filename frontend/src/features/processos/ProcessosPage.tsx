@@ -333,6 +333,17 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
                   </button>
                 </div>
 
+                <div className="processo-link-box">
+                  <strong>Link do processo</strong>
+                  {form.link ? (
+                    <a href={form.link} target="_blank" rel="noopener noreferrer" className="processo-link-cta">
+                      Abrir processo
+                    </a>
+                  ) : (
+                    <span className="muted">Sem link cadastrado para este processo.</span>
+                  )}
+                </div>
+
                 <div className="movimentacoes">
                   <strong>Movimentacoes possiveis</strong>
                   <div className="movimentacoes-botoes">
