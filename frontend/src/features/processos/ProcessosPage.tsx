@@ -23,6 +23,8 @@ interface ProcessoFormState {
   observacao: string;
 }
 
+const STATUS_ENCAMINHADO_INTERNO = 'Encaminhado Internamente';
+
 function statusClass(status: string) {
   const s = String(status || '').toLowerCase();
   if (s.includes('finaliz')) return 'status-pill status-fim';
@@ -162,6 +164,28 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
 
   const salvarModal = async () => {
     if (!form) return;
+    const destinoNormalizado = form.destino.trim();
+    const statusEhEncaminhamentoInterno = form.status === STATUS_ENCAMINHADO_INTERNO;
+    const prazoNumerico = form.prazoDiasUteis === '' ? null : Number(form.prazoDiasUteis);
+
+    if (statusEhEncaminhamentoInterno) {
+      if (!destinoNormalizado) {
+        setErro('Informe o e-mail do destinatario interno para encaminhamento interno.');
+        return;
+      }
+
+      const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(destinoNormalizado);
+      if (!emailValido) {
+        setErro('Informe um e-mail valido para o destinatario interno.');
+        return;
+      }
+
+      if (!Number.isInteger(prazoNumerico) || (prazoNumerico ?? 0) <= 0) {
+        setErro('Informe a quantidade de dias uteis (inteiro maior que zero) para avaliacao interna.');
+        return;
+      }
+    }
+
     setSalvandoModal(true);
     setErro(null);
     try {
@@ -172,8 +196,8 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
         protocolo: form.protocolo,
         link: form.link || null,
         origem: form.origem || null,
-        destino: form.destino || null,
-        prazoDiasUteis: form.prazoDiasUteis === '' ? null : Number(form.prazoDiasUteis),
+        destino: destinoNormalizado || null,
+        prazoDiasUteis: prazoNumerico,
         assunto: form.assunto,
         observacao: form.observacao || null
       });
@@ -313,12 +337,40 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
                   <strong>Movimentacoes possiveis</strong>
                   <div className="movimentacoes-botoes">
                     <button className="btn-mini" type="button" onClick={() => aplicarMovimentacao('Recebido')}>Recebido</button>
-                    <button className="btn-mini" type="button" onClick={() => aplicarMovimentacao('Encaminhado Internamente')}>Encaminhar Interno</button>
+                    <button className="btn-mini" type="button" onClick={() => aplicarMovimentacao(STATUS_ENCAMINHADO_INTERNO)}>Encaminhar Interno</button>
                     <button className="btn-mini" type="button" onClick={() => aplicarMovimentacao('Encaminhados Externamente')}>Encaminhar Externo</button>
                     <button className="btn-mini" type="button" onClick={() => aplicarMovimentacao('Em analise')}>Em analise</button>
                     <button className="btn-mini" type="button" onClick={() => aplicarMovimentacao('Finalizado')}>Finalizar</button>
                   </div>
                 </div>
+
+                {form.status === STATUS_ENCAMINHADO_INTERNO ? (
+                  <div className="encaminhamento-interno-box">
+                    <strong>Encaminhamento interno</strong>
+                    <p>Preencha o e-mail do destinatario interno e o prazo de avaliacao em dias uteis.</p>
+                    <div className="encaminhamento-interno-grid">
+                      <label>
+                        E-mail do destinatario interno
+                        <input
+                          type="email"
+                          placeholder="nome.sobrenome@ifms.edu.br"
+                          value={form.destino}
+                          onChange={(e) => updateForm('destino', e.target.value)}
+                        />
+                      </label>
+                      <label>
+                        Dias uteis para avaliacao
+                        <input
+                          type="number"
+                          min={1}
+                          step={1}
+                          value={form.prazoDiasUteis}
+                          onChange={(e) => updateForm('prazoDiasUteis', e.target.value)}
+                        />
+                      </label>
+                    </div>
+                  </div>
+                ) : null}
 
                 <div className="modal-form-grid">
                   <label>
@@ -326,7 +378,7 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
                     <select value={form.status} onChange={(e) => updateForm('status', e.target.value)}>
                       <option value="Recebido">Recebido</option>
                       <option value="Encaminhados Externamente">Encaminhados Externamente</option>
-                      <option value="Encaminhado Internamente">Encaminhado Internamente</option>
+                      <option value={STATUS_ENCAMINHADO_INTERNO}>Encaminhado Internamente</option>
                       <option value="Finalizado">Finalizado</option>
                       <option value="Em analise">Em analise</option>
                     </select>
@@ -350,14 +402,23 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
                     Origem
                     <input type="text" value={form.origem} onChange={(e) => updateForm('origem', e.target.value)} />
                   </label>
-                  <label>
-                    Destino
-                    <input type="text" value={form.destino} onChange={(e) => updateForm('destino', e.target.value)} />
-                  </label>
-                  <label>
-                    Prazo dias uteis
-                    <input type="number" min={0} value={form.prazoDiasUteis} onChange={(e) => updateForm('prazoDiasUteis', e.target.value)} />
-                  </label>
+                  {form.status !== STATUS_ENCAMINHADO_INTERNO ? (
+                    <label>
+                      Destino
+                      <input type="text" value={form.destino} onChange={(e) => updateForm('destino', e.target.value)} />
+                    </label>
+                  ) : null}
+                  {form.status !== STATUS_ENCAMINHADO_INTERNO ? (
+                    <label>
+                      Prazo dias uteis
+                      <input
+                        type="number"
+                        min={0}
+                        value={form.prazoDiasUteis}
+                        onChange={(e) => updateForm('prazoDiasUteis', e.target.value)}
+                      />
+                    </label>
+                  ) : null}
                   <label>
                     Link
                     <input type="text" value={form.link} onChange={(e) => updateForm('link', e.target.value)} />
