@@ -88,7 +88,14 @@ export async function atualizarSetor(id: number, input: AtualizarSetorInput): Pr
 
 export async function importarSetoresPlanilha(arquivo: File): Promise<{
   mensagem: string;
-  resumo: { totalLinhas: number; inseridos: number; atualizados: number };
+  resumo: {
+    totalLinhas: number;
+    processadas: number;
+    inseridos: number;
+    atualizados: number;
+    ignorados: number;
+    semCampusVinculado: number;
+  };
 }> {
   const formData = new FormData();
   formData.append('arquivo', arquivo);

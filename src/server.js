@@ -1372,11 +1372,11 @@ app.post('/api/setores/importar-planilha', exigirAutenticacao, exigirMaster, upl
     return res.status(400).json({ erro: error.message || 'Falha ao ler planilha enviada.' });
   }
 
-  const required = {
-    setorNome: ['setor nome'],
-    setorSigla: ['setor sigla'],
-    campusNome: ['campus'],
-    campusSigla: ['campus sigla']
+  const aliases = {
+    setorNome: ['setor nome', 'nome do setor', 'setor'],
+    setorSigla: ['setor sigla', 'sigla do setor', 'sigla'],
+    campusNome: ['campus', 'campus nome', 'nome do campus'],
+    campusSigla: ['campus sigla', 'sigla campus', 'sigla do campus']
   };
 
   const chavesOriginais = Object.keys(linhas[0] || {});
@@ -1385,27 +1385,25 @@ app.post('/api/setores/importar-planilha', exigirAutenticacao, exigirMaster, upl
     mapaCabecalho[normalizarChaveImportacao(chave)] = chave;
   }
 
-  const faltantes = Object.entries(required)
-    .filter(([, aliases]) => !aliases.some((alias) => Object.prototype.hasOwnProperty.call(mapaCabecalho, alias)))
-    .map(([key]) => key);
+  const resolverCabecalho = (candidatos) =>
+    candidatos.find((alias) => Object.prototype.hasOwnProperty.call(mapaCabecalho, alias)) || null;
 
-  if (faltantes.length) {
-    return res.status(400).json({
-      erro: `Cabecalhos obrigatorios ausentes na planilha: ${faltantes.join(', ')}.`
-    });
-  }
+  const keySetorNomeNorm = resolverCabecalho(aliases.setorNome);
+  const keySetorSiglaNorm = resolverCabecalho(aliases.setorSigla);
+  const keyCampusNomeNorm = resolverCabecalho(aliases.campusNome);
+  const keyCampusSiglaNorm = resolverCabecalho(aliases.campusSigla);
 
-  const keySetorNome = mapaCabecalho['setor nome'];
-  const keySetorSigla = mapaCabecalho['setor sigla'];
-  const keyCampusNome = mapaCabecalho['campus'];
-  const keyCampusSigla = mapaCabecalho['campus sigla'];
+  const keySetorNome = keySetorNomeNorm ? mapaCabecalho[keySetorNomeNorm] : null;
+  const keySetorSigla = keySetorSiglaNorm ? mapaCabecalho[keySetorSiglaNorm] : null;
+  const keyCampusNome = keyCampusNomeNorm ? mapaCabecalho[keyCampusNomeNorm] : null;
+  const keyCampusSigla = keyCampusSiglaNorm ? mapaCabecalho[keyCampusSiglaNorm] : null;
 
   const dados = linhas.map((row, index) => ({
     linha: index + 2,
-    setorNome: normalizarTexto(row[keySetorNome]),
-    setorSigla: normalizarTexto(row[keySetorSigla]).toUpperCase(),
-    campusNome: normalizarTexto(row[keyCampusNome]),
-    campusSigla: normalizarTexto(row[keyCampusSigla]).toUpperCase()
+    setorNome: keySetorNome ? normalizarTexto(row[keySetorNome]) : '',
+    setorSigla: keySetorSigla ? normalizarTexto(row[keySetorSigla]).toUpperCase() : '',
+    campusNome: keyCampusNome ? normalizarTexto(row[keyCampusNome]) : '',
+    campusSigla: keyCampusSigla ? normalizarTexto(row[keyCampusSigla]).toUpperCase() : ''
   }));
 
   const client = await pool.connect();
@@ -1414,57 +1412,49 @@ app.post('/api/setores/importar-planilha', exigirAutenticacao, exigirMaster, upl
     const mapCampusSigla = new Map(campi.rows.map((c) => [normalizarTexto(c.sigla).toUpperCase(), c]));
     const mapCampusNome = new Map(campi.rows.map((c) => [normalizarTexto(c.nome).toLowerCase(), c]));
 
-    const inconsistencias = [];
+    const avisos = [];
     const preparados = [];
+    let ignorados = 0;
+    let semCampusVinculado = 0;
 
     for (const item of dados) {
-      if (!item.setorNome || !item.setorSigla || !item.campusNome || !item.campusSigla) {
-        inconsistencias.push({
+      if (!item.setorNome || !item.setorSigla) {
+        ignorados += 1;
+        avisos.push({
           linha: item.linha,
-          erro: 'Campos obrigatorios vazios (Setor Nome, Setor Sigla, Campus, Campus Sigla).'
+          aviso: 'Linha ignorada por falta de Setor Nome ou Setor Sigla.'
         });
         continue;
       }
 
-      const campusPorSigla = mapCampusSigla.get(item.campusSigla);
-      const campusPorNome = mapCampusNome.get(item.campusNome.toLowerCase());
-
-      if (!campusPorSigla && !campusPorNome) {
-        inconsistencias.push({
-          linha: item.linha,
-          erro: `Campus nao cadastrado: ${item.campusSigla} / ${item.campusNome}.`
-        });
-        continue;
-      }
+      const campusPorSigla = item.campusSigla ? mapCampusSigla.get(item.campusSigla) : null;
+      const campusPorNome = item.campusNome ? mapCampusNome.get(item.campusNome.toLowerCase()) : null;
+      let campusId = null;
+      let deveContarSemCampus = false;
 
       if (campusPorSigla && campusPorNome && campusPorSigla.id !== campusPorNome.id) {
-        inconsistencias.push({
-          linha: item.linha,
-          erro: `Campus Sigla e Campus Nome divergem (${item.campusSigla} x ${item.campusNome}).`
-        });
-        continue;
+        deveContarSemCampus = true;
+      } else {
+        const campusEscolhido = campusPorSigla || campusPorNome;
+        if (campusEscolhido && campusEscolhido.ativo) {
+          campusId = campusEscolhido.id;
+        } else if (campusEscolhido || item.campusNome || item.campusSigla) {
+          deveContarSemCampus = true;
+        }
       }
 
-      const campus = campusPorSigla || campusPorNome;
-      if (!campus.ativo) {
-        inconsistencias.push({
+      if (deveContarSemCampus) {
+        semCampusVinculado += 1;
+        avisos.push({
           linha: item.linha,
-          erro: `Campus inativo (${campus.sigla} - ${campus.nome}).`
+          aviso: 'Campus nao reconhecido/inativo. Setor importado sem campus vinculado.'
         });
-        continue;
       }
 
       preparados.push({
         nome: item.setorNome,
         sigla: item.setorSigla,
-        campusId: campus.id
-      });
-    }
-
-    if (inconsistencias.length) {
-      return res.status(400).json({
-        erro: 'Falha na validacao da planilha. Corrija as linhas informadas e tente novamente.',
-        inconsistencias
+        campusId
       });
     }
 
@@ -1496,10 +1486,14 @@ app.post('/api/setores/importar-planilha', exigirAutenticacao, exigirMaster, upl
     return res.json({
       mensagem: 'Importacao de planilha de setores concluida com sucesso.',
       resumo: {
-        totalLinhas: preparados.length,
+        totalLinhas: dados.length,
+        processadas: preparados.length,
         inseridos,
-        atualizados
-      }
+        atualizados,
+        ignorados,
+        semCampusVinculado
+      },
+      avisos: avisos.slice(0, 50)
     });
   } catch (error) {
     await client.query('ROLLBACK');
