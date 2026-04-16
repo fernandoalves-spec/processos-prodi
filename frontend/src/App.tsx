@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { AppLayout } from './components/AppLayout';
 import { PlaceholderPage } from './components/PlaceholderPage';
 import { DashboardPage } from './features/dashboard/DashboardPage';
+import { GutPage } from './features/gut/GutPage';
 import { ProcessosPage } from './features/processos/ProcessosPage';
 import { SetoresPage } from './features/setores/SetoresPage';
 import { getSessaoUsuario, logout } from './services/authService';
@@ -10,6 +11,7 @@ import { getSessaoUsuario, logout } from './services/authService';
 export function App() {
   const [autenticado, setAutenticado] = useState(false);
   const [usuarioLabel, setUsuarioLabel] = useState('Nao autenticado');
+  const [perfilUsuario, setPerfilUsuario] = useState<string | null>(null);
 
   useEffect(() => {
     getSessaoUsuario()
@@ -17,13 +19,16 @@ export function App() {
         setAutenticado(Boolean(sessao.autenticado));
         if (sessao.autenticado && sessao.usuario) {
           setUsuarioLabel(`${sessao.usuario.nome} (${sessao.usuario.perfilNome})`);
+          setPerfilUsuario(sessao.usuario.perfil);
           return;
         }
         setUsuarioLabel('Nao autenticado');
+        setPerfilUsuario(null);
       })
       .catch(() => {
         setAutenticado(false);
         setUsuarioLabel('Nao autenticado');
+        setPerfilUsuario(null);
       });
   }, []);
 
@@ -53,6 +58,7 @@ export function App() {
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<DashboardPage enabled={autenticado} />} />
         <Route path="/processos" element={<ProcessosPage enabled={autenticado} />} />
+        <Route path="/gut" element={<GutPage enabled={autenticado} isAdminMaster={perfilUsuario === 'ADMIN_MASTER'} />} />
         <Route path="/setores" element={<SetoresPage enabled={autenticado} />} />
         <Route
           path="/usuarios"

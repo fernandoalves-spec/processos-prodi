@@ -10,6 +10,13 @@ export interface ProcessoItem {
   prazoDiasUteis?: number | null;
   assunto: string;
   observacao?: string | null;
+  gutGravidade?: string | null;
+  gutGravidadePontos?: number | null;
+  gutUrgencia?: string | null;
+  gutUrgenciaPontos?: number | null;
+  gutTendencia?: string | null;
+  gutTendenciaPontos?: number | null;
+  gutPrioridadeFinal?: number | null;
   criadoPor?: string | null;
   atualizadoPor?: string | null;
   criadoEm?: string | null;

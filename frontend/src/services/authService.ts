@@ -2,6 +2,7 @@ export interface SessaoUsuario {
   autenticado: boolean;
   usuario: {
     nome: string;
+    perfil: string;
     perfilNome: string;
   } | null;
 }

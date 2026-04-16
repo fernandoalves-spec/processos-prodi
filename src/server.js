@@ -30,6 +30,27 @@ const PERFIL_NOME_POR_ID = PERFIS.reduce((acc, item) => {
 }, {});
 
 const oauthEstados = new Map();
+const GUT_GRAVIDADE_PONTOS = {
+  'Nao e Grave': 1,
+  'Pouco Grave': 2,
+  Grave: 3,
+  'Muito Grave': 4,
+  Gravissimo: 5
+};
+const GUT_URGENCIA_PONTOS = {
+  'Nao tem pressa': 1,
+  'Pode esperar um pouco': 2,
+  'Resolver o mais cedo possivel': 3,
+  'Resolver com alguma urgencia': 4,
+  'Necessita de acao imediata': 5
+};
+const GUT_TENDENCIA_PONTOS = {
+  'Nao vai piorar': 1,
+  'Vai piorar em longo prazo': 2,
+  'Vai piorar em medio prazo': 3,
+  'Vai piorar em pouco tempo': 4,
+  'Vai piorar rapidamente': 5
+};
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -100,6 +121,13 @@ function respostaProcesso(processo) {
     prazoDiasUteis: processo.prazo_dias_uteis ?? processo.prazo_em_dias_uteis,
     assunto: processo.assunto,
     observacao: processo.observacao,
+    gutGravidade: processo.gut_gravidade,
+    gutGravidadePontos: processo.gut_gravidade_pontos,
+    gutUrgencia: processo.gut_urgencia,
+    gutUrgenciaPontos: processo.gut_urgencia_pontos,
+    gutTendencia: processo.gut_tendencia,
+    gutTendenciaPontos: processo.gut_tendencia_pontos,
+    gutPrioridadeFinal: processo.gut_prioridade_final,
     criadoPor: processo.criado_por,
     atualizadoPor: processo.atualizado_por,
     criadoEm: processo.criado_em,
@@ -131,6 +159,19 @@ function normalizarInteiro(valor, padrao, minimo, maximo) {
   if (!Number.isInteger(numero)) return null;
   if (numero < minimo || numero > maximo) return null;
   return numero;
+}
+
+function validarOpcaoGut(valor, mapaPontuacao, rotuloCampo) {
+  const texto = normalizarTexto(valor);
+  if (!texto) return { opcao: null, pontos: null };
+
+  if (!Object.prototype.hasOwnProperty.call(mapaPontuacao, texto)) {
+    return {
+      erro: `${rotuloCampo} invalida. Valores permitidos: ${Object.keys(mapaPontuacao).join(', ')}.`
+    };
+  }
+
+  return { opcao: texto, pontos: mapaPontuacao[texto] };
 }
 
 async function obterUsuarioPorSessao(req) {
@@ -1335,6 +1376,13 @@ app.get('/api/processos', exigirAutenticacao, async (req, res) => {
           prazo_em_dias_uteis,
           assunto,
           observacao,
+          gut_gravidade,
+          gut_gravidade_pontos,
+          gut_urgencia,
+          gut_urgencia_pontos,
+          gut_tendencia,
+          gut_tendencia_pontos,
+          gut_prioridade_final,
           criado_por,
           atualizado_por,
           criado_em,
@@ -1408,6 +1456,13 @@ app.post('/api/processos', exigirAutenticacao, async (req, res) => {
           prazo_em_dias_uteis,
           assunto,
           observacao,
+          gut_gravidade,
+          gut_gravidade_pontos,
+          gut_urgencia,
+          gut_urgencia_pontos,
+          gut_tendencia,
+          gut_tendencia_pontos,
+          gut_prioridade_final,
           criado_por,
           atualizado_por,
           criado_em,
@@ -1501,6 +1556,13 @@ app.put('/api/processos/:id', exigirAutenticacao, async (req, res) => {
           prazo_em_dias_uteis,
           assunto,
           observacao,
+          gut_gravidade,
+          gut_gravidade_pontos,
+          gut_urgencia,
+          gut_urgencia_pontos,
+          gut_tendencia,
+          gut_tendencia_pontos,
+          gut_prioridade_final,
           criado_por,
           atualizado_por,
           criado_em,
@@ -1536,7 +1598,106 @@ app.put('/api/processos/:id', exigirAutenticacao, async (req, res) => {
   }
 });
 
-app.get(['/', '/dashboard', '/processos', '/setores', '/usuarios'], (req, res) => {
+app.put('/api/processos/:id/gut', exigirAutenticacao, exigirMaster, async (req, res) => {
+  const id = Number(req.params.id);
+
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({ erro: 'Id de processo invalido.' });
+  }
+
+  const protocolo = normalizarTexto(req.body.protocolo);
+  const assunto = normalizarTexto(req.body.assunto);
+
+  if (!protocolo || !assunto) {
+    return res.status(400).json({ erro: 'Os campos protocolo e assunto sao obrigatorios.' });
+  }
+
+  const gravidade = validarOpcaoGut(req.body.gutGravidade, GUT_GRAVIDADE_PONTOS, 'Gravidade');
+  if (gravidade.erro) return res.status(400).json({ erro: gravidade.erro });
+
+  const urgencia = validarOpcaoGut(req.body.gutUrgencia, GUT_URGENCIA_PONTOS, 'Urgencia');
+  if (urgencia.erro) return res.status(400).json({ erro: urgencia.erro });
+
+  const tendencia = validarOpcaoGut(req.body.gutTendencia, GUT_TENDENCIA_PONTOS, 'Tendencia');
+  if (tendencia.erro) return res.status(400).json({ erro: tendencia.erro });
+
+  const gutPrioridadeFinal =
+    gravidade.pontos !== null && urgencia.pontos !== null && tendencia.pontos !== null
+      ? gravidade.pontos + urgencia.pontos + tendencia.pontos
+      : null;
+
+  try {
+    const atualizado = await pool.query(
+      `
+        UPDATE processos
+        SET
+          protocolo = $1,
+          assunto = $2,
+          gut_gravidade = $3,
+          gut_gravidade_pontos = $4,
+          gut_urgencia = $5,
+          gut_urgencia_pontos = $6,
+          gut_tendencia = $7,
+          gut_tendencia_pontos = $8,
+          gut_prioridade_final = $9,
+          atualizado_por = $10,
+          atualizado_em = NOW()
+        WHERE id = $11
+        RETURNING
+          id,
+          status,
+          precisa_resposta,
+          data_recebimento,
+          protocolo,
+          link,
+          origem,
+          destino,
+          prazo_dias_uteis,
+          prazo_em_dias_uteis,
+          assunto,
+          observacao,
+          gut_gravidade,
+          gut_gravidade_pontos,
+          gut_urgencia,
+          gut_urgencia_pontos,
+          gut_tendencia,
+          gut_tendencia_pontos,
+          gut_prioridade_final,
+          criado_por,
+          atualizado_por,
+          criado_em,
+          atualizado_em
+      `,
+      [
+        protocolo,
+        assunto,
+        gravidade.opcao,
+        gravidade.pontos,
+        urgencia.opcao,
+        urgencia.pontos,
+        tendencia.opcao,
+        tendencia.pontos,
+        gutPrioridadeFinal,
+        req.usuario.email,
+        id
+      ]
+    );
+
+    if (!atualizado.rowCount) {
+      return res.status(404).json({ erro: 'Processo nao encontrado.' });
+    }
+
+    return res.json({
+      mensagem: 'Matriz GUT atualizada com sucesso.',
+      processo: respostaProcesso(atualizado.rows[0])
+    });
+  } catch (error) {
+    console.error('Erro ao atualizar matriz GUT:', error.message);
+    return res.status(500).json({ erro: 'Erro interno ao atualizar matriz GUT.' });
+  }
+});
+
+app.get(['/', '/dashboard', '/processos', '/setores', '/usuarios', '/gut'], (req, res) => {
   res.sendFile(path.join(CLIENT_DIST_DIR, 'index.html'));
 });
 

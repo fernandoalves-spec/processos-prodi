@@ -508,6 +508,31 @@ body {
   min-width: 720px;
 }
 
+.gut-tabela {
+  min-width: 1040px;
+}
+
+.gut-prioridade {
+  display: inline-flex;
+  min-width: 34px;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 3px 8px;
+  background: #dbeafe;
+  color: #1e3a8a;
+  font-weight: 700;
+}
+
+.gut-editar {
+  background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  color: #fff;
+  border-color: #075985;
+}
+
+.gut-editar:hover:not(:disabled) {
+  filter: brightness(1.05);
+}
+
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -647,6 +672,27 @@ body {
   font-size: 0.9rem;
 }
 
+.gut-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.gut-form-grid label {
+  display: grid;
+  gap: 6px;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.gut-form-grid input,
+.gut-form-grid select {
+  border: 1px solid #c9d6e2;
+  border-radius: 10px;
+  padding: 8px;
+  font-size: 0.9rem;
+}
+
 .modal-form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -752,6 +798,10 @@ body {
   }
 
   .modal-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .gut-form-grid {
     grid-template-columns: 1fr;
   }
 

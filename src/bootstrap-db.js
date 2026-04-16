@@ -139,6 +139,13 @@ async function initDatabase() {
     await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS faixa TEXT`);
     await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS iteracao INTEGER`);
     await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS faixa_2 TEXT`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS gut_gravidade TEXT`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS gut_gravidade_pontos INTEGER`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS gut_urgencia TEXT`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS gut_urgencia_pontos INTEGER`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS gut_tendencia TEXT`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS gut_tendencia_pontos INTEGER`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS gut_prioridade_final INTEGER`);
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS sessoes (

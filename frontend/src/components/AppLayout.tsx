@@ -16,7 +16,7 @@ export function AppLayout({ children, autenticado, usuarioLabel, onLogout }: App
         <div className="header-wrap">
           <div className="brand">
             <h1>Dashboard de Processos</h1>
-            <p>Pró-Reitoria de Desenvolvimento Institucional</p>
+            <p>Pro-Reitoria de Desenvolvimento Institucional</p>
           </div>
           <div className="header-actions">
             <span className="chip">{usuarioLabel}</span>
@@ -34,14 +34,15 @@ export function AppLayout({ children, autenticado, usuarioLabel, onLogout }: App
         <nav className="nav">
           <NavLink to="/dashboard">Dashboard</NavLink>
           <NavLink to="/processos">Processos</NavLink>
+          <NavLink to="/gut">Priorizacao GUT</NavLink>
           <NavLink to="/setores">Setores</NavLink>
-          <NavLink to="/usuarios">Usuários</NavLink>
+          <NavLink to="/usuarios">Usuarios</NavLink>
         </nav>
       </header>
       <main className="main">{children}</main>
       <footer className="footer">
-        <span>PRODI · IFMS</span>
-        <Link to="/dashboard">Início</Link>
+        <span>PRODI - IFMS</span>
+        <Link to="/dashboard">Inicio</Link>
       </footer>
     </div>
   );
