@@ -10,7 +10,7 @@ import { PriorityTaskList } from './components/PriorityTaskList';
 import { createDashboardProvider } from '../../services/dashboardProvider';
 import { DashboardFilters, DashboardSnapshot } from '../../types/dashboard';
 
-const provider = createDashboardProvider('api');
+const provider = createDashboardProvider();
 
 const snapshotVazio: DashboardSnapshot = {
   filtrosAplicados: {},
