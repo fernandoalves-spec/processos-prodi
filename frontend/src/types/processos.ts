@@ -17,6 +17,12 @@ export interface ProcessoItem {
   gutTendencia?: string | null;
   gutTendenciaPontos?: number | null;
   gutPrioridadeFinal?: number | null;
+  setorDestinoId?: number | null;
+  setorDestinoNome?: string | null;
+  setorDestinoSigla?: string | null;
+  distribuidoEm?: string | null;
+  distribuidoPor?: string | null;
+  filaInternaPendente?: boolean;
   criadoPor?: string | null;
   atualizadoPor?: string | null;
   criadoEm?: string | null;

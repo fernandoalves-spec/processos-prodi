@@ -146,6 +146,9 @@ async function initDatabase() {
     await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS gut_tendencia TEXT`);
     await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS gut_tendencia_pontos INTEGER`);
     await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS gut_prioridade_final INTEGER`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS setor_destino_id INTEGER`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS distribuido_em TIMESTAMPTZ`);
+    await client.query(`ALTER TABLE processos ADD COLUMN IF NOT EXISTS distribuido_por TEXT`);
 
     await client.query(`
       CREATE TABLE IF NOT EXISTS sessoes (
@@ -190,6 +193,7 @@ async function initDatabase() {
     await client.query('CREATE INDEX IF NOT EXISTS idx_sessoes_expira_em ON sessoes(expira_em)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_processos_protocolo ON processos(protocolo)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_processos_status ON processos(status)');
+    await client.query('CREATE INDEX IF NOT EXISTS idx_processos_setor_destino_id ON processos(setor_destino_id)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_processos_data_abertura ON processos(data_abertura)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_processos_data_conclusao ON processos(data_conclusao)');
     await client.query('CREATE INDEX IF NOT EXISTS idx_pendencias_criticas_ativo_prioridade ON pendencias_criticas(ativo, prioridade)');

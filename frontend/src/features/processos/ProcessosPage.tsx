@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
-import { atualizarProcesso, listarProcessos } from '../../services/processosService';
+import { listarSetoresAtivos } from '../../services/setoresService';
+import { atualizarProcesso, distribuirProcessoInternamente, listarProcessos } from '../../services/processosService';
 import { ProcessoItem } from '../../types/processos';
+import { SetorItem } from '../../types/setores';
 
 interface ProcessosPageProps {
   enabled: boolean;
+  canDistribuirInternamente: boolean;
 }
 
 type SortField = 'protocolo' | 'assunto' | 'status';
@@ -18,6 +21,7 @@ interface ProcessoFormState {
   link: string;
   origem: string;
   destino: string;
+  setorDestinoId: string;
   prazoDiasUteis: string;
   assunto: string;
   observacao: string;
@@ -33,9 +37,19 @@ function statusClass(status: string) {
   return 'status-pill status-recebido';
 }
 
-export function ProcessosPage({ enabled }: ProcessosPageProps) {
+function labelSetorDestino(processo: ProcessoItem) {
+  if (!processo.setorDestinoId) return '-';
+  const sigla = processo.setorDestinoSigla || '';
+  const nome = processo.setorDestinoNome || '';
+  if (sigla && nome) return `${sigla} - ${nome}`;
+  return nome || sigla || `Setor #${processo.setorDestinoId}`;
+}
+
+export function ProcessosPage({ enabled, canDistribuirInternamente }: ProcessosPageProps) {
   const [processos, setProcessos] = useState<ProcessoItem[]>([]);
+  const [setores, setSetores] = useState<SetorItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingSetores, setLoadingSetores] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [busca, setBusca] = useState('');
   const [status, setStatus] = useState('');
@@ -45,11 +59,13 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [modalAberto, setModalAberto] = useState(false);
   const [salvandoModal, setSalvandoModal] = useState(false);
+  const [distribuindoInterno, setDistribuindoInterno] = useState(false);
   const [form, setForm] = useState<ProcessoFormState | null>(null);
 
   useEffect(() => {
     if (!enabled) {
       setProcessos([]);
+      setSetores([]);
       setErro(null);
       return;
     }
@@ -60,6 +76,12 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
       .then((dados) => setProcessos(dados))
       .catch(() => setErro('Nao foi possivel carregar a lista de processos.'))
       .finally(() => setLoading(false));
+
+    setLoadingSetores(true);
+    listarSetoresAtivos()
+      .then((dados) => setSetores(dados))
+      .catch(() => setErro('Nao foi possivel carregar os setores internos.'))
+      .finally(() => setLoadingSetores(false));
   }, [enabled]);
 
   const statusDisponiveis = useMemo(() => [...new Set(processos.map((p) => p.status))], [processos]);
@@ -68,7 +90,7 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
     const filtrados = processos.filter((item) => {
       const termo = busca.trim().toLowerCase();
       if (termo) {
-        const alvo = `${item.protocolo} ${item.assunto} ${item.origem || ''} ${item.destino || ''}`.toLowerCase();
+        const alvo = `${item.protocolo} ${item.assunto} ${item.origem || ''} ${item.destino || ''} ${item.setorDestinoNome || ''} ${item.setorDestinoSigla || ''}`.toLowerCase();
         if (!alvo.includes(termo)) return false;
       }
       if (status && item.status !== status) return false;
@@ -142,6 +164,7 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
       link: processo.link || '',
       origem: processo.origem || '',
       destino: processo.destino || '',
+      setorDestinoId: processo.setorDestinoId ? String(processo.setorDestinoId) : '',
       prazoDiasUteis: processo.prazoDiasUteis === null || processo.prazoDiasUteis === undefined ? '' : String(processo.prazoDiasUteis),
       assunto: processo.assunto || '',
       observacao: processo.observacao || ''
@@ -162,51 +185,83 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
     setForm((atual) => (atual ? { ...atual, status: proximoStatus } : atual));
   };
 
+  const setorSelecionado = form?.setorDestinoId
+    ? setores.find((item) => item.id === Number(form.setorDestinoId))
+    : null;
+
   const salvarModal = async () => {
     if (!form) return;
-    const destinoNormalizado = form.destino.trim();
-    const statusEhEncaminhamentoInterno = form.status === STATUS_ENCAMINHADO_INTERNO;
+
     const prazoNumerico = form.prazoDiasUteis === '' ? null : Number(form.prazoDiasUteis);
+    if (prazoNumerico !== null && !Number.isFinite(prazoNumerico)) {
+      setErro('Prazo em dias uteis invalido.');
+      return;
+    }
 
-    if (statusEhEncaminhamentoInterno) {
-      if (!destinoNormalizado) {
-        setErro('Informe o e-mail do destinatario interno para encaminhamento interno.');
-        return;
-      }
-
-      const emailValido = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(destinoNormalizado);
-      if (!emailValido) {
-        setErro('Informe um e-mail valido para o destinatario interno.');
-        return;
-      }
-
-      if (!Number.isInteger(prazoNumerico) || (prazoNumerico ?? 0) <= 0) {
-        setErro('Informe a quantidade de dias uteis (inteiro maior que zero) para avaliacao interna.');
-        return;
-      }
+    let destinoLegado = form.destino.trim();
+    if (form.status === STATUS_ENCAMINHADO_INTERNO && setorSelecionado) {
+      destinoLegado = `${setorSelecionado.sigla} - ${setorSelecionado.nome}`;
     }
 
     setSalvandoModal(true);
     setErro(null);
     try {
-      const atualizado = await atualizarProcesso(form.id, {
+      const atualizadoBase = await atualizarProcesso(form.id, {
         status: form.status,
         precisaResposta: form.precisaResposta,
         dataRecebimento: form.dataRecebimento || null,
         protocolo: form.protocolo,
         link: form.link || null,
         origem: form.origem || null,
-        destino: destinoNormalizado || null,
+        destino: destinoLegado || null,
         prazoDiasUteis: prazoNumerico,
         assunto: form.assunto,
         observacao: form.observacao || null
       });
-      setProcessos((atual) => atual.map((item) => (item.id === atualizado.id ? atualizado : item)));
+
+      let atualizadoFinal = atualizadoBase;
+      if (form.status === STATUS_ENCAMINHADO_INTERNO && canDistribuirInternamente && form.setorDestinoId) {
+        atualizadoFinal = await distribuirProcessoInternamente(form.id, {
+          setorDestinoId: Number(form.setorDestinoId),
+          status: STATUS_ENCAMINHADO_INTERNO
+        });
+      }
+
+      setProcessos((atual) => atual.map((item) => (item.id === atualizadoFinal.id ? atualizadoFinal : item)));
       fecharModal();
     } catch (error) {
       setErro(error instanceof Error ? error.message : 'Nao foi possivel atualizar o processo.');
     } finally {
       setSalvandoModal(false);
+    }
+  };
+
+  const distribuirInternamente = async () => {
+    if (!form) return;
+
+    if (!canDistribuirInternamente) {
+      setErro('Somente Administrador Master e Gestor PRODI podem distribuir internamente.');
+      return;
+    }
+
+    if (!form.setorDestinoId) {
+      setErro('Selecione o setor interno de destino para distribuir.');
+      return;
+    }
+
+    setDistribuindoInterno(true);
+    setErro(null);
+    try {
+      const atualizado = await distribuirProcessoInternamente(form.id, {
+        setorDestinoId: Number(form.setorDestinoId),
+        status: STATUS_ENCAMINHADO_INTERNO
+      });
+      setProcessos((atual) => atual.map((item) => (item.id === atualizado.id ? atualizado : item)));
+      fecharModal();
+    } catch (error) {
+      setErro(error instanceof Error ? error.message : 'Nao foi possivel distribuir internamente.');
+    } finally {
+      setDistribuindoInterno(false);
     }
   };
 
@@ -226,7 +281,7 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
               Buscar
               <input
                 type="text"
-                placeholder="Protocolo, assunto, origem ou destino"
+                placeholder="Protocolo, assunto, origem, destino ou setor"
                 value={busca}
                 onChange={(e) => setBusca(e.target.value)}
               />
@@ -252,12 +307,16 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
             </label>
           </div>
 
+          {!canDistribuirInternamente ? (
+            <div className="loading-inline">Distribuicao interna restrita a ADMIN_MASTER e GESTOR_PRODI.</div>
+          ) : null}
+
           {erro ? <div className="error">{erro}</div> : null}
           {loading ? <div className="loading-inline">Carregando processos...</div> : null}
 
           <div className="processos-layout">
             <div className="processos-tabela-wrap">
-              <table className="processos-tabela">
+              <table className="processos-tabela processos-distribuicao-tabela">
                 <thead>
                   <tr>
                     <th>
@@ -275,6 +334,8 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
                         Status {labelOrdenacao('status')}
                       </button>
                     </th>
+                    <th>Destino Interno</th>
+                    <th>Fila Interna</th>
                     <th>Acoes</th>
                   </tr>
                 </thead>
@@ -286,21 +347,27 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
                       <td>
                         <span className={statusClass(item.status)}>{item.status}</span>
                       </td>
+                      <td>{labelSetorDestino(item)}</td>
+                      <td>
+                        <span className={`status-pill ${item.filaInternaPendente ? 'status-analise' : 'status-fim'}`}>
+                          {item.filaInternaPendente ? 'Pendente' : 'Sem pendencia'}
+                        </span>
+                      </td>
                       <td>
                         <button
-                          className="btn-mini icon-eye"
+                          className="btn-mini"
                           type="button"
                           aria-label={`Visualizar processo ${item.protocolo}`}
                           onClick={() => abrirModal(item)}
                         >
-                          👁
+                          Ver
                         </button>
                       </td>
                     </tr>
                   ))}
                   {!processosPaginados.length ? (
                     <tr>
-                      <td colSpan={4} className="muted">
+                      <td colSpan={6} className="muted">
                         Nenhum processo encontrado para os filtros aplicados.
                       </td>
                     </tr>
@@ -310,7 +377,7 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
             </div>
             <div className="paginacao">
               <span>
-                {processosFiltradosOrdenados.length} processo(s) · pagina {paginaCorrigida} de {totalPaginas}
+                {processosFiltradosOrdenados.length} processo(s) - pagina {paginaCorrigida} de {totalPaginas}
               </span>
               <div className="paginacao-botoes">
                 <button className="btn-mini" type="button" onClick={irPaginaAnterior} disabled={paginaCorrigida <= 1}>
@@ -357,28 +424,38 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
 
                 {form.status === STATUS_ENCAMINHADO_INTERNO ? (
                   <div className="encaminhamento-interno-box">
-                    <strong>Encaminhamento interno</strong>
-                    <p>Preencha o e-mail do destinatario interno e o prazo de avaliacao em dias uteis.</p>
+                    <strong>Distribuicao interna por setor</strong>
+                    <p>Selecione o setor interno de destino para registrar na fila de distribuicao.</p>
                     <div className="encaminhamento-interno-grid">
                       <label>
-                        E-mail do destinatario interno
-                        <input
-                          type="email"
-                          placeholder="nome.sobrenome@ifms.edu.br"
-                          value={form.destino}
-                          onChange={(e) => updateForm('destino', e.target.value)}
-                        />
+                        Setor interno de destino
+                        <select
+                          value={form.setorDestinoId}
+                          onChange={(e) => updateForm('setorDestinoId', e.target.value)}
+                          disabled={loadingSetores}
+                        >
+                          <option value="">Selecione um setor</option>
+                          {setores.map((setor) => (
+                            <option key={setor.id} value={setor.id}>
+                              {setor.sigla} - {setor.nome}
+                            </option>
+                          ))}
+                        </select>
                       </label>
                       <label>
-                        Dias uteis para avaliacao
-                        <input
-                          type="number"
-                          min={1}
-                          step={1}
-                          value={form.prazoDiasUteis}
-                          onChange={(e) => updateForm('prazoDiasUteis', e.target.value)}
-                        />
+                        Status da fila
+                        <input type="text" value={form.setorDestinoId ? 'Pendente no setor interno' : ''} readOnly />
                       </label>
+                    </div>
+                    <div className="distribuicao-inline-actions">
+                      <button
+                        className="btn-mini distribuicao-btn"
+                        type="button"
+                        onClick={distribuirInternamente}
+                        disabled={!canDistribuirInternamente || distribuindoInterno || !form.setorDestinoId}
+                      >
+                        {distribuindoInterno ? 'Distribuindo...' : 'Distribuir internamente'}
+                      </button>
                     </div>
                   </div>
                 ) : null}
@@ -415,7 +492,7 @@ export function ProcessosPage({ enabled }: ProcessosPageProps) {
                   </label>
                   {form.status !== STATUS_ENCAMINHADO_INTERNO ? (
                     <label>
-                      Destino
+                      Destino (legado)
                       <input type="text" value={form.destino} onChange={(e) => updateForm('destino', e.target.value)} />
                     </label>
                   ) : null}

@@ -57,7 +57,15 @@ export function App() {
       <Routes>
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="/dashboard" element={<DashboardPage enabled={autenticado} />} />
-        <Route path="/processos" element={<ProcessosPage enabled={autenticado} />} />
+        <Route
+          path="/processos"
+          element={
+            <ProcessosPage
+              enabled={autenticado}
+              canDistribuirInternamente={perfilUsuario === 'ADMIN_MASTER' || perfilUsuario === 'GESTOR_PRODI'}
+            />
+          }
+        />
         <Route path="/gut" element={<GutPage enabled={autenticado} isAdminMaster={perfilUsuario === 'ADMIN_MASTER'} />} />
         <Route path="/setores" element={<SetoresPage enabled={autenticado} />} />
         <Route

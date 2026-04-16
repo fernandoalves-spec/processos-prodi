@@ -128,6 +128,12 @@ function respostaProcesso(processo) {
     gutTendencia: processo.gut_tendencia,
     gutTendenciaPontos: processo.gut_tendencia_pontos,
     gutPrioridadeFinal: processo.gut_prioridade_final,
+    setorDestinoId: processo.setor_destino_id ? Number(processo.setor_destino_id) : null,
+    setorDestinoNome: processo.setor_destino_nome || null,
+    setorDestinoSigla: processo.setor_destino_sigla || null,
+    distribuidoEm: processo.distribuido_em || null,
+    distribuidoPor: processo.distribuido_por || null,
+    filaInternaPendente: Boolean(processo.setor_destino_id) && processo.status !== 'Finalizado',
     criadoPor: processo.criado_por,
     atualizadoPor: processo.atualizado_por,
     criadoEm: processo.criado_em,
@@ -251,6 +257,17 @@ function exigirMaster(req, res, next) {
   if (req.usuario.perfil !== 'ADMIN_MASTER') {
     return res.status(403).json({
       erro: 'Apenas o Administrador Master pode gerenciar usuarios.'
+    });
+  }
+
+  return next();
+}
+
+function exigirGestaoProcessos(req, res, next) {
+  const perfisPermitidos = new Set(['ADMIN_MASTER', 'GESTOR_PRODI']);
+  if (!perfisPermitidos.has(req.usuario.perfil)) {
+    return res.status(403).json({
+      erro: 'Apenas Administrador Master e Gestor PRODI podem distribuir processos internamente.'
     });
   }
 
@@ -1364,31 +1381,37 @@ app.get('/api/processos', exigirAutenticacao, async (req, res) => {
     const resultado = await pool.query(
       `
         SELECT
-          id,
-          status,
-          precisa_resposta,
-          data_recebimento,
-          protocolo,
-          link,
-          origem,
-          destino,
-          prazo_dias_uteis,
-          prazo_em_dias_uteis,
-          assunto,
-          observacao,
-          gut_gravidade,
-          gut_gravidade_pontos,
-          gut_urgencia,
-          gut_urgencia_pontos,
-          gut_tendencia,
-          gut_tendencia_pontos,
-          gut_prioridade_final,
-          criado_por,
-          atualizado_por,
-          criado_em,
-          atualizado_em
-        FROM processos
-        ORDER BY criado_em DESC, id DESC
+          p.id,
+          p.status,
+          p.precisa_resposta,
+          p.data_recebimento,
+          p.protocolo,
+          p.link,
+          p.origem,
+          p.destino,
+          p.prazo_dias_uteis,
+          p.prazo_em_dias_uteis,
+          p.assunto,
+          p.observacao,
+          p.gut_gravidade,
+          p.gut_gravidade_pontos,
+          p.gut_urgencia,
+          p.gut_urgencia_pontos,
+          p.gut_tendencia,
+          p.gut_tendencia_pontos,
+          p.gut_prioridade_final,
+          p.setor_destino_id,
+          sd.nome AS setor_destino_nome,
+          sd.sigla AS setor_destino_sigla,
+          p.distribuido_em,
+          p.distribuido_por,
+          p.criado_por,
+          p.atualizado_por,
+          p.criado_em,
+          p.atualizado_em
+        FROM processos p
+        LEFT JOIN setores sd ON sd.id = p.setor_destino_id
+        ORDER BY p.criado_em DESC, p.id DESC
       `
     );
 
@@ -1463,6 +1486,9 @@ app.post('/api/processos', exigirAutenticacao, async (req, res) => {
           gut_tendencia,
           gut_tendencia_pontos,
           gut_prioridade_final,
+          setor_destino_id,
+          distribuido_em,
+          distribuido_por,
           criado_por,
           atualizado_por,
           criado_em,
@@ -1563,6 +1589,9 @@ app.put('/api/processos/:id', exigirAutenticacao, async (req, res) => {
           gut_tendencia,
           gut_tendencia_pontos,
           gut_prioridade_final,
+          setor_destino_id,
+          distribuido_em,
+          distribuido_por,
           criado_por,
           atualizado_por,
           criado_em,
@@ -1595,6 +1624,161 @@ app.put('/api/processos/:id', exigirAutenticacao, async (req, res) => {
   } catch (error) {
     console.error('Erro ao atualizar processo:', error.message);
     res.status(500).json({ erro: 'Erro interno ao atualizar processo.' });
+  }
+});
+
+app.put('/api/processos/:id/distribuicao-interna', exigirAutenticacao, exigirGestaoProcessos, async (req, res) => {
+  const id = Number(req.params.id);
+  const setorDestinoId = Number(req.body.setorDestinoId);
+  const statusAtualizado = req.body.status !== undefined ? normalizarTexto(req.body.status) : null;
+
+  if (!Number.isInteger(id)) {
+    return res.status(400).json({ erro: 'Id de processo invalido.' });
+  }
+
+  if (!Number.isInteger(setorDestinoId) || setorDestinoId <= 0) {
+    return res.status(400).json({ erro: 'Informe um setor interno valido para distribuicao.' });
+  }
+
+  try {
+    const setorConsulta = await pool.query(
+      'SELECT id, nome, sigla, ativo FROM setores WHERE id = $1',
+      [setorDestinoId]
+    );
+
+    if (!setorConsulta.rowCount) {
+      return res.status(404).json({ erro: 'Setor de destino nao encontrado.' });
+    }
+
+    const setorDestino = setorConsulta.rows[0];
+    if (!setorDestino.ativo) {
+      return res.status(400).json({ erro: 'Nao e possivel distribuir para setor inativo.' });
+    }
+
+    const destinoLegado = `${setorDestino.sigla} - ${setorDestino.nome}`;
+    const atualizado = await pool.query(
+      `
+        UPDATE processos
+        SET
+          setor_destino_id = $1,
+          destino = $2,
+          status = COALESCE(NULLIF($3, ''), status),
+          distribuido_em = NOW(),
+          distribuido_por = $4,
+          atualizado_por = $4,
+          atualizado_em = NOW()
+        WHERE id = $5
+        RETURNING id
+      `,
+      [setorDestinoId, destinoLegado, statusAtualizado, req.usuario.email, id]
+    );
+
+    if (!atualizado.rowCount) {
+      return res.status(404).json({ erro: 'Processo nao encontrado.' });
+    }
+
+    const detalhado = await pool.query(
+      `
+        SELECT
+          p.id,
+          p.status,
+          p.precisa_resposta,
+          p.data_recebimento,
+          p.protocolo,
+          p.link,
+          p.origem,
+          p.destino,
+          p.prazo_dias_uteis,
+          p.prazo_em_dias_uteis,
+          p.assunto,
+          p.observacao,
+          p.gut_gravidade,
+          p.gut_gravidade_pontos,
+          p.gut_urgencia,
+          p.gut_urgencia_pontos,
+          p.gut_tendencia,
+          p.gut_tendencia_pontos,
+          p.gut_prioridade_final,
+          p.setor_destino_id,
+          sd.nome AS setor_destino_nome,
+          sd.sigla AS setor_destino_sigla,
+          p.distribuido_em,
+          p.distribuido_por,
+          p.criado_por,
+          p.atualizado_por,
+          p.criado_em,
+          p.atualizado_em
+        FROM processos p
+        LEFT JOIN setores sd ON sd.id = p.setor_destino_id
+        WHERE p.id = $1
+      `,
+      [id]
+    );
+
+    return res.json({
+      mensagem: 'Distribuicao interna registrada com sucesso.',
+      processo: respostaProcesso(detalhado.rows[0])
+    });
+  } catch (error) {
+    console.error('Erro ao distribuir processo internamente:', error.message);
+    return res.status(500).json({ erro: 'Erro interno ao distribuir processo internamente.' });
+  }
+});
+
+app.get('/api/processos/fila-interna', exigirAutenticacao, async (req, res) => {
+  const setorIdRaw = req.query.setorId;
+  const setorId = setorIdRaw === undefined ? null : Number(setorIdRaw);
+
+  if (setorIdRaw !== undefined && (!Number.isInteger(setorId) || setorId <= 0)) {
+    return res.status(400).json({ erro: 'setorId invalido.' });
+  }
+
+  try {
+    const lista = await pool.query(
+      `
+        SELECT
+          p.id,
+          p.status,
+          p.precisa_resposta,
+          p.data_recebimento,
+          p.protocolo,
+          p.link,
+          p.origem,
+          p.destino,
+          p.prazo_dias_uteis,
+          p.prazo_em_dias_uteis,
+          p.assunto,
+          p.observacao,
+          p.gut_gravidade,
+          p.gut_gravidade_pontos,
+          p.gut_urgencia,
+          p.gut_urgencia_pontos,
+          p.gut_tendencia,
+          p.gut_tendencia_pontos,
+          p.gut_prioridade_final,
+          p.setor_destino_id,
+          sd.nome AS setor_destino_nome,
+          sd.sigla AS setor_destino_sigla,
+          p.distribuido_em,
+          p.distribuido_por,
+          p.criado_por,
+          p.atualizado_por,
+          p.criado_em,
+          p.atualizado_em
+        FROM processos p
+        LEFT JOIN setores sd ON sd.id = p.setor_destino_id
+        WHERE p.setor_destino_id IS NOT NULL
+          AND p.status <> 'Finalizado'
+          AND ($1::int IS NULL OR p.setor_destino_id = $1)
+        ORDER BY p.distribuido_em DESC NULLS LAST, p.id DESC
+      `,
+      [setorId]
+    );
+
+    return res.json(lista.rows.map(respostaProcesso));
+  } catch (error) {
+    console.error('Erro ao listar fila interna de processos:', error.message);
+    return res.status(500).json({ erro: 'Erro interno ao listar fila interna.' });
   }
 });
 
@@ -1663,6 +1847,9 @@ app.put('/api/processos/:id/gut', exigirAutenticacao, exigirMaster, async (req, 
           gut_tendencia,
           gut_tendencia_pontos,
           gut_prioridade_final,
+          setor_destino_id,
+          distribuido_em,
+          distribuido_por,
           criado_por,
           atualizado_por,
           criado_em,

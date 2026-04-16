@@ -29,6 +29,11 @@ interface AtualizarGutProcessoInput {
   gutTendencia: string | null;
 }
 
+interface DistribuicaoInternaInput {
+  setorDestinoId: number;
+  status?: string;
+}
+
 export async function atualizarProcesso(id: number, payload: AtualizarProcessoInput): Promise<ProcessoItem> {
   const response = await fetch(`/api/processos/${id}`, {
     method: 'PUT',
@@ -57,4 +62,29 @@ export async function atualizarGutProcesso(id: number, payload: AtualizarGutProc
   }
 
   return data.processo as ProcessoItem;
+}
+
+export async function distribuirProcessoInternamente(id: number, payload: DistribuicaoInternaInput): Promise<ProcessoItem> {
+  const response = await fetch(`/api/processos/${id}/distribuicao-interna`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await response.json();
+  if (!response.ok) {
+    throw new Error(data?.erro || 'Falha ao distribuir processo internamente.');
+  }
+
+  return data.processo as ProcessoItem;
+}
+
+export async function listarFilaInterna(setorId?: number): Promise<ProcessoItem[]> {
+  const query = setorId ? `?setorId=${setorId}` : '';
+  const response = await fetch(`/api/processos/fila-interna${query}`);
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    throw new Error(data?.erro || 'Falha ao carregar fila interna de processos.');
+  }
+  return response.json();
 }
